@@ -1,0 +1,10 @@
+{
+  "description": "Effortlessly convert and transcribe files into editable text, streamlining document management for professionals and students alike.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

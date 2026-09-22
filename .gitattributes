@@ -1,0 +1,59 @@
+# Git attributes
+# Git LFS is not used in this project.
+
+# Automatically detect text files and normalize line endings
+* text=auto
+
+# Text/source files
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.css text
+*.scss text
+*.html text
+*.json text
+*.md text
+*.txt text
+*.xml text
+*.yml text
+*.yaml text
+*.svg text
+
+# Configuration files
+*.env text
+*.gitignore text
+*.gitattributes text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.bmp binary
+
+*.mp4 binary
+*.mov binary
+*.avi binary
+*.mkv binary
+*.webm binary
+
+*.mp3 binary
+*.wav binary
+*.ogg binary
+*.m4a binary
+
+*.pdf binary
+*.zip binary
+*.7z binary
+*.rar binary
+
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+
+*.psd binary
+*.ai binary

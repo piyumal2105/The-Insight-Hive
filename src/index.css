@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --color-bg-light: #EFEFEF;
+  --color-bg-dark: #262626;
+  --color-text-dark: #1A1A1A;
+  --color-text-light: #F2F2F2;
+  --color-muted: #9A9A9A;
+  --color-purple: #7A2E8C;
+  --color-magenta: #C2436B;
+  --color-orange: #E8722E;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background-color: #EFEFEF;
+  color: #1A1A1A;
+  margin: 0;
+  padding: 0;
+}
+
+/* Hide scrollbar until hovering */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #9A9A9A44;
+  border-radius: 3px;
+}
+
+/* Brand gradient */
+.grad-text {
+  background: linear-gradient(90deg, #7A2E8C, #C2436B, #E8722E);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.grad-bg {
+  background: linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E);
+}
+
+.grad-border {
+  border-image: linear-gradient(90deg, #7A2E8C, #C2436B, #E8722E) 1;
+}
+
+/* Hexagon clip */
+.hex-clip {
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+}
+
+/* Animated gradient pill button */
+.btn-grad {
+  background: linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E);
+  background-size: 200% 200%;
+  transition: background-position 0.4s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-grad:hover {
+  background-position: right center;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(194, 67, 107, 0.35);
+}
+
+/* Counter animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Fade up */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: fadeUp 0.7s ease forwards;
+}
+
+/* Shine sweep */
+@keyframes shine {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(300%) skewX(-15deg); }
+}
+
+/* Bee animations */
+@keyframes wingFlutter {
+  0%, 100% { transform: scaleY(1) scaleX(1); }
+  50% { transform: scaleY(0.3) scaleX(1.2); }
+}
+
+@keyframes bodyBob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-3px) rotate(2deg); }
+}
+
+@keyframes beeFlight {
+  0% { opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { opacity: 0; }
+}
