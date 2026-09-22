@@ -6,7 +6,12 @@ import { useCountUp } from '../components/useCountUp';
 import logo from '../assets/logo.png';
 import Icon, { type IconName } from '../components/Icon';
 
-const clients = ['Emirates', 'Litro Gas', 'UNDP', 'Astra', 'Emirates', 'Litro Gas', 'UNDP', 'Astra'];
+// Full real client/portfolio list (from the credentials deck)
+const clients = [
+  'Emirates', 'Litro Gas', 'Euro Motors', 'Marico', 'All Out', 'Baygon',
+  'Glade', 'KIWI', 'Pledge', 'Asthijeewa', 'UNDP', 'Wipro',
+  'Browns EV', 'MELBET', 'Bellosé', 'Astra',
+];
 
 const capabilities = [
   { icon: 'strategy' as IconName, title: 'Brand Strategy', sub: 'Consumer Insight & Positioning' },
@@ -17,11 +22,53 @@ const capabilities = [
   { icon: 'chart' as IconName, title: 'Data & Measurement', sub: 'Analytics & Attribution' },
 ];
 
+const pillars = [
+  { icon: 'heart' as IconName, title: 'Big on Passion', desc: 'Every brief gets the best version of us.' },
+  { icon: 'bolt' as IconName, title: 'Fierce on Dedication', desc: 'We stay until the work is right, not just done.' },
+  { icon: 'handshake' as IconName, title: 'Built on Trust', desc: 'Transparent, audited, and accountable.' },
+];
+
+/** Generic reveal-on-scroll wrapper: fades + slides up a grid of children, staggered. */
+function useStaggerReveal() {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return { ref, visible };
+}
+
+/** Lightweight magnetic-hover effect for buttons: nudges toward the cursor. */
+function useMagnetic(strength = 0.35) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const [style, setStyle] = useState<React.CSSProperties>({});
+  const onMouseMove = (e: React.MouseEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) * strength;
+    const y = (e.clientY - rect.top - rect.height / 2) * strength;
+    setStyle({ transform: `translate(${x}px, ${y}px)` });
+  };
+  const onMouseLeave = () => setStyle({ transform: 'translate(0, 0)' });
+  return { ref, style, onMouseMove, onMouseLeave };
+}
+
 function StatCard({ prefix, number, suffix, label, started }: { prefix?: string; number: number; suffix?: string; label: string; started: boolean }) {
   const count = useCountUp(number, 2200, started);
   return (
-    <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-      <div className="text-4xl font-extrabold mb-2" style={{ background: 'linear-gradient(90deg, #7A2E8C, #C2436B, #E8722E)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+    <div
+      className="rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1"
+      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+    >
+      <div className="text-4xl font-extrabold mb-2" style={{ background: 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
         {prefix}{count.toLocaleString()}{suffix}
       </div>
       <p className="text-sm leading-relaxed" style={{ color: '#9A9A9A' }}>{label}</p>
@@ -29,77 +76,196 @@ function StatCard({ prefix, number, suffix, label, started }: { prefix?: string;
   );
 }
 
-const pillars = [
-  { icon: 'heart' as IconName, title: 'Big on Passion', desc: 'Every brief gets the best version of us.' },
-  { icon: 'bolt' as IconName, title: 'Fierce on Dedication', desc: 'We stay until the work is right, not just done.' },
-  { icon: 'handshake' as IconName, title: 'Built on Trust', desc: 'Transparent, audited, and accountable.' },
-];
+/** Replaces the old hexagon graphic: an interactive tilt card for the logo, following the cursor. */
+function InteractiveLogoCard() {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0, mx: 50, my: 50 });
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    setTilt({
+      rx: (0.5 - py) * 14,
+      ry: (px - 0.5) * 14,
+      mx: px * 100,
+      my: py * 100,
+    });
+  };
+  const onMouseLeave = () => setTilt({ rx: 0, ry: 0, mx: 50, my: 50 });
+
+  return (
+    <div style={{ perspective: 1000 }}>
+      <div
+        ref={cardRef}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        className="relative rounded-3xl px-14 py-12 cursor-pointer transition-transform duration-200 ease-out"
+        style={{
+          background: '#fff',
+          border: '1px solid rgba(26,26,26,0.07)',
+          transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
+          boxShadow: '0 24px 60px rgba(146,39,143,0.14)',
+        }}
+      >
+        <div
+          className="absolute inset-0 rounded-3xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at ${tilt.mx}% ${tilt.my}%, rgba(146,39,143,0.12), transparent 60%)`,
+          }}
+        />
+        <img
+          src={logo}
+          alt="The Insight Hive"
+          className="w-64 max-w-full relative"
+          style={{ transform: 'translateZ(30px)' }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const { ref: statsRef, inView: statsInView } = useInView(0.2);
-  const [pillarsVisible, setPillarsVisible] = useState(false);
-  const pillarsRef = useRef<HTMLDivElement>(null);
+  const { ref: pillarsRef, visible: pillarsVisible } = useStaggerReveal();
+  const { ref: capsRef, visible: capsVisible } = useStaggerReveal();
+  const { ref: workRef, visible: workVisible } = useStaggerReveal();
+  const [marqueePaused, setMarqueePaused] = useState(false);
 
-  useEffect(() => {
-    const el = pillarsRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setPillarsVisible(true); obs.disconnect(); } }, { threshold: 0.2 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+  const heroLetsTalk = useMagnetic(0.25);
+  const heroSeeWork = useMagnetic(0.25);
+  const ctaButton = useMagnetic(0.2);
 
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden" style={{ background: '#EFEFEF', minHeight: 'calc(100vh - 64px)' }}>
+      <section className="relative overflow-hidden" style={{ background: '#EFEFEF' }}>
         <div className="absolute inset-0 pointer-events-none">
-          <div style={{ position: 'absolute', top: -120, right: -120, width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(122,46,140,0.07) 0%, transparent 70%)' }} />
-          <div style={{ position: 'absolute', bottom: -80, left: -80, width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(232,114,46,0.06) 0%, transparent 70%)' }} />
+          <div style={{ position: 'absolute', top: -120, right: -120, width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(146,39,143,0.07) 0%, transparent 70%)' }} />
+          <div style={{ position: 'absolute', bottom: -80, left: -80, width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(247,148,31,0.06) 0%, transparent 70%)' }} />
         </div>
-        <div className="max-w-7xl mx-auto px-6 py-24 flex flex-col md:flex-row items-center gap-16">
+        <div className="max-w-7xl mx-auto px-6 py-16 flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-8 tracking-widest" style={{ background: 'rgba(122,46,140,0.1)', color: '#7A2E8C' }}>
+            <div
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-8 tracking-widest"
+              style={{ background: 'rgba(146,39,143,0.1)', color: '#92278F', animation: 'fadeUp 0.6s ease both' }}
+            >
               OMNICOM GROUP AFFILIATE
             </div>
-            <h1 className="font-extrabold leading-none mb-6" style={{ fontSize: 'clamp(3rem, 7vw, 5.5rem)', color: '#1A1A1A' }}>
+            <h1
+              className="font-extrabold leading-none mb-6"
+              style={{ fontSize: 'clamp(3rem, 7vw, 5.5rem)', color: '#1A1A1A', animation: 'fadeUp 0.6s ease 0.1s both' }}
+            >
               <span className="font-light">The</span>{' '}
-              <span style={{ background: 'linear-gradient(90deg, #7A2E8C, #C2436B, #E8722E)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>All-Rounders</span>{' '}
+              <span style={{ background: 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>All-Rounders</span>{' '}
               <span className="font-light">of</span>{' '}
               <span>Marketing</span>
             </h1>
-            <p className="text-lg mb-10 max-w-xl leading-relaxed" style={{ color: '#9A9A9A' }}>
+            <p
+              className="text-lg mb-10 max-w-xl leading-relaxed"
+              style={{ color: '#9A9A9A', animation: 'fadeUp 0.6s ease 0.2s both' }}
+            >
               Brand Strategy, Consumer Insight, Creative, Integrated Media, Digital, and Data — under one roof. Founded by veterans with 44+ years combined experience.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <NavLink to="/contact" className="btn-grad text-white font-bold px-8 py-4 rounded-full text-base">
+            <div className="flex flex-wrap gap-4" style={{ animation: 'fadeUp 0.6s ease 0.3s both' }}>
+              <NavLink
+                ref={heroLetsTalk.ref}
+                to="/contact"
+                onMouseMove={heroLetsTalk.onMouseMove}
+                onMouseLeave={heroLetsTalk.onMouseLeave}
+                style={heroLetsTalk.style}
+                className="btn-grad text-white font-bold px-8 py-4 rounded-full text-base transition-transform"
+              >
                 Let's Talk
               </NavLink>
-              <NavLink to="/our-work" className="font-semibold px-8 py-4 rounded-full text-base border-2 transition-colors hover:bg-[#1A1A1A] hover:text-[#EFEFEF]" style={{ borderColor: '#1A1A1A', color: '#1A1A1A' }}>
+              <NavLink
+                ref={heroSeeWork.ref}
+                to="/our-work"
+                onMouseMove={heroSeeWork.onMouseMove}
+                onMouseLeave={heroSeeWork.onMouseLeave}
+                style={heroSeeWork.style}
+                className="font-semibold px-8 py-4 rounded-full text-base border-2 transition-all hover:bg-[#1A1A1A] hover:text-[#EFEFEF]"
+                css={undefined}
+                {...{}}
+              >
                 See Our Work
               </NavLink>
             </div>
           </div>
-          <div className="flex-shrink-0 flex flex-col items-center justify-center gap-8">
-            <AnimatedHex />
-            <img
-              src={logo}
-              alt="The Insight Hive"
-              className="w-72 max-w-full"
-              style={{ filter: 'drop-shadow(0 4px 24px rgba(122,46,140,0.15))' }}
-            />
+          <div className="flex-shrink-0" style={{ animation: 'fadeUp 0.7s ease 0.15s both' }}>
+            <InteractiveLogoCard />
           </div>
         </div>
+        <style>{`
+          @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
       </section>
 
-      {/* Trust bar */}
-      <section className="py-8 overflow-hidden" style={{ background: '#fff', borderTop: '1px solid rgba(26,26,26,0.06)', borderBottom: '1px solid rgba(26,26,26,0.06)' }}>
+      {/* Trust bar — seamless looping logo strip */}
+      <section
+        className="py-10 overflow-hidden"
+        style={{ background: '#fff', borderTop: '1px solid rgba(26,26,26,0.06)', borderBottom: '1px solid rgba(26,26,26,0.06)' }}
+      >
         <p className="text-center text-xs font-semibold tracking-widest mb-6" style={{ color: '#9A9A9A' }}>TRUSTED BY</p>
-        <div className="relative flex gap-16 whitespace-nowrap" style={{ animation: 'marquee 20s linear infinite' }}>
-          {[...clients, ...clients].map((c, i) => (
-            <span key={i} className="text-xl font-extrabold tracking-tight flex-shrink-0" style={{ color: '#1A1A1A', opacity: 0.7 }}>{c}</span>
-          ))}
+        <div
+          className="relative flex justify-center"
+          onMouseEnter={() => setMarqueePaused(true)}
+          onMouseLeave={() => setMarqueePaused(false)}
+        >
+          <div
+            className="flex gap-4 whitespace-nowrap"
+            style={{
+              animation: `marquee ${clients.length * 2.2}s linear infinite`,
+              animationPlayState: marqueePaused ? 'paused' : 'running',
+              willChange: 'transform',
+            }}
+          >
+            {[...clients, ...clients].map((c, i) => (
+              <span
+                key={i}
+                className="flex-shrink-0 px-6 py-3 rounded-xl text-base font-bold tracking-tight transition-all duration-300 hover:scale-105"
+                style={{
+                  color: '#1A1A1A',
+                  opacity: 0.55,
+                  border: '1px solid rgba(26,26,26,0.08)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.background = 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)';
+                  e.currentTarget.style.WebkitBackgroundClip = 'text';
+                  (e.currentTarget.style as any).WebkitTextFillColor = 'transparent';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '0.55';
+                  e.currentTarget.style.background = 'none';
+                  (e.currentTarget.style as any).WebkitTextFillColor = '#1A1A1A';
+                }}
+              >
+                {c}
+              </span>
+            ))}
+          </div>
         </div>
-        <style>{`@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
+        <div className="text-center mt-6">
+          <NavLink
+            to="/our-work"
+            className="text-sm font-semibold hover:opacity-70 transition-opacity"
+            style={{ color: '#92278F' }}
+          >
+            See our full portfolio →
+          </NavLink>
+        </div>
+        <style>{`
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+        `}</style>
       </section>
 
       {/* Capabilities */}
@@ -111,14 +277,22 @@ export default function Home() {
             </h2>
             <p style={{ color: '#9A9A9A' }} className="max-w-xl">End-to-end marketing expertise with no silos. Every specialist masters the full picture.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div ref={capsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {capabilities.map((cap, i) => (
               <div
                 key={i}
-                className="p-8 rounded-2xl group cursor-pointer transition-all duration-300 hover:-translate-y-1"
-                style={{ background: '#fff', border: '1px solid rgba(26,26,26,0.07)' }}
+                className="p-8 rounded-2xl group cursor-pointer transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+                style={{
+                  background: '#fff',
+                  border: '1px solid rgba(26,26,26,0.07)',
+                  opacity: capsVisible ? 1 : 0,
+                  transform: capsVisible ? 'translateY(0)' : 'translateY(24px)',
+                  transition: `opacity 0.6s ease ${i * 90}ms, transform 0.6s ease ${i * 90}ms, box-shadow 0.3s ease, translate 0.3s ease`,
+                }}
               >
-                <HexIcon size={52}><Icon name={cap.icon} /></HexIcon>
+                <div className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 inline-block">
+                  <HexIcon size={52}><Icon name={cap.icon} /></HexIcon>
+                </div>
                 <h3 className="font-bold text-lg mt-5 mb-2" style={{ color: '#1A1A1A' }}>{cap.title}</h3>
                 <p className="text-sm" style={{ color: '#9A9A9A' }}>{cap.sub}</p>
               </div>
@@ -157,7 +331,7 @@ export default function Home() {
             {pillars.map((p, i) => (
               <div
                 key={i}
-                className="text-center p-10 rounded-2xl transition-all duration-700"
+                className="text-center p-10 rounded-2xl transition-all duration-700 hover:-translate-y-1 hover:shadow-lg"
                 style={{
                   background: '#fff',
                   border: '1px solid rgba(26,26,26,0.07)',
@@ -184,27 +358,33 @@ export default function Home() {
             </h2>
             <NavLink to="/our-work" className="inline-flex items-center gap-2 text-sm font-semibold hover:opacity-70 transition-opacity" style={{ color: '#9A9A9A' }}>View All <Icon name="arrow-right" size={16} /></NavLink>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div ref={workRef} className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <CaseCard
+              to="/our-work#astra-rasa-mathaka"
               title="Astra — Rasa Mathaka"
               tag="Integrated Campaign"
               result="83M media value · 993% ROMI"
               bg="#1A1A1A"
               img="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=500&fit=crop&auto=format"
+              visible={workVisible}
+              delay={0}
             />
             <CaseCard
-              title="UNDP — Community Impact"
-              tag="Brand Strategy"
-              result="Nationwide grassroots reach"
+              to="/our-work#kiwi-shoe-polish"
+              title="KIWI — Shoe Polish"
+              tag="Integrated Campaign"
+              result="Full campaign breakdown on Our Work"
               bg="#1A1A1A"
               img="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=500&fit=crop&auto=format"
+              visible={workVisible}
+              delay={120}
             />
           </div>
         </div>
       </section>
 
       {/* CTA band */}
-      <section className="py-24 text-center" style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)' }}>
+      <section className="py-24 text-center" style={{ background: 'linear-gradient(135deg, #92278F, #C2436B, #F7941F)' }}>
         <div className="max-w-3xl mx-auto px-6">
           <h2 className="font-extrabold mb-6" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#fff' }}>
             Ready to build something great?
@@ -212,7 +392,14 @@ export default function Home() {
           <p className="mb-10 text-lg opacity-90" style={{ color: '#fff' }}>
             Let's connect and see how The Insight Hive can move the needle for your brand.
           </p>
-          <NavLink to="/contact" className="inline-block bg-white font-bold px-10 py-4 rounded-full text-base transition-all hover:shadow-2xl hover:-translate-y-1" style={{ color: '#7A2E8C' }}>
+          <NavLink
+            ref={ctaButton.ref}
+            to="/contact"
+            onMouseMove={ctaButton.onMouseMove}
+            onMouseLeave={ctaButton.onMouseLeave}
+            style={ctaButton.style}
+            className="inline-block bg-white font-bold px-10 py-4 rounded-full text-base transition-all hover:shadow-2xl"
+          >
             Start a Conversation
           </NavLink>
         </div>
@@ -221,53 +408,20 @@ export default function Home() {
   );
 }
 
-function AnimatedHex() {
-  const [pulse, setPulse] = useState(false);
-  useEffect(() => {
-    const id = setInterval(() => setPulse(p => !p), 1200);
-    return () => clearInterval(id);
-  }, []);
-  const bars = [0.4, 0.6, 0.85, 1.0, 0.85, 0.6, 0.4];
-  const size = 220;
+function CaseCard({
+  to, title, tag, result, bg, img, visible, delay,
+}: { to: string; title: string; tag: string; result: string; bg: string; img: string; visible: boolean; delay: number }) {
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ filter: 'drop-shadow(0 20px 60px rgba(122,46,140,0.3))' }}>
-      <defs>
-        <linearGradient id="heroHexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#7A2E8C" />
-          <stop offset="50%" stopColor="#C2436B" />
-          <stop offset="100%" stopColor="#E8722E" />
-        </linearGradient>
-      </defs>
-      <polygon
-        points={`${size*0.5},4 ${size*0.93},${size*0.25} ${size*0.93},${size*0.75} ${size*0.5},${size-4} ${size*0.07},${size*0.75} ${size*0.07},${size*0.25}`}
-        fill="url(#heroHexGrad)"
-      />
-      {bars.map((h, i) => {
-        const barW = 16;
-        const gap = 8;
-        const total = bars.length * barW + (bars.length - 1) * gap;
-        const x = (size - total) / 2 + i * (barW + gap);
-        const baseH = h * size * 0.5;
-        const animH = pulse ? baseH * (0.85 + Math.random() * 0.3) : baseH;
-        const y = (size - animH) / 2;
-        return (
-          <rect
-            key={i}
-            x={x} y={y}
-            width={barW} height={animH}
-            rx={8}
-            fill="rgba(255,255,255,0.9)"
-            style={{ transition: 'height 0.6s ease, y 0.6s ease' }}
-          />
-        );
-      })}
-    </svg>
-  );
-}
-
-function CaseCard({ title, tag, result, bg, img }: { title: string; tag: string; result: string; bg: string; img: string }) {
-  return (
-    <NavLink to="/our-work" className="group block rounded-2xl overflow-hidden relative" style={{ background: bg }}>
+    <NavLink
+      to={to}
+      className="group block rounded-2xl overflow-hidden relative"
+      style={{
+        background: bg,
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(24px)',
+        transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
+      }}
+    >
       <div className="relative overflow-hidden h-64">
         <img
           src={img}
@@ -277,10 +431,10 @@ function CaseCard({ title, tag, result, bg, img }: { title: string; tag: string;
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,26,26,0.8) 0%, transparent 60%)' }} />
       </div>
       <div className="p-8">
-        <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3" style={{ background: 'linear-gradient(90deg, #7A2E8C, #C2436B, #E8722E)', color: '#fff' }}>{tag}</span>
+        <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3" style={{ background: 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)', color: '#fff' }}>{tag}</span>
         <h3 className="font-bold text-xl mb-2" style={{ color: '#F2F2F2' }}>{title}</h3>
         <p className="text-sm" style={{ color: '#9A9A9A' }}>{result}</p>
-        <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: '#E8722E' }}>
+        <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ color: '#F7941F' }}>
           View Case Study <Icon name="arrow-right" size={16} />
         </div>
       </div>
