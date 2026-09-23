@@ -5,12 +5,27 @@ import { useInView } from '../components/useInView';
 import { useCountUp } from '../components/useCountUp';
 import Icon, { type IconName } from '../components/Icon';
 
-// Full real client/portfolio list (from the credentials deck)
-const clients = [
+
+const clientNames = [
   'Emirates', 'Litro Gas', 'Euro Motors', 'Marico', 'All Out', 'Baygon',
   'Glade', 'KIWI', 'Pledge', 'Asthijeewa', 'UNDP', 'Wipro',
   'Browns EV', 'MELBET', 'Bellosé', 'Astra',
 ];
+
+const logoModules = import.meta.glob('../assets/logo/img*.{png,jpg,jpeg,svg,webp}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
+
+const sortedLogoSrcs = Object.keys(logoModules)
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  .map((key) => logoModules[key]);
+
+type Client = { name: string; logo: string };
+
+const clients: Client[] = clientNames
+  .map((name, i) => ({ name, logo: sortedLogoSrcs[i] }))
+  .filter((c) => Boolean(c.logo));
 
 const capabilities = [
   { icon: 'strategy' as IconName, title: 'Brand Strategy', sub: 'Consumer Insight & Positioning' },
@@ -119,7 +134,6 @@ function HiveBackground() {
     };
   }, []);
 
-  // Larger hexes = fewer DOM nodes = much smoother
   const hexSize = 96;
   const hexW = hexSize;
   const hexH = hexSize * 1.1547;
@@ -128,7 +142,6 @@ function HiveBackground() {
   const hexes: Hex[] = useMemo(() => {
     if (size.width === 0 || size.height === 0) return [];
 
-    // Smaller buffer than before
     const cols = Math.ceil(size.width / (hexW * 0.98)) + 2;
     const rows = Math.ceil(size.height / rowGap) + 2;
     const startCol = -1;
@@ -174,13 +187,12 @@ function HiveBackground() {
               background: h.color,
               opacity: h.opacity,
               willChange: 'transform',
-              transform: 'translateZ(0)', // force GPU layer
+              transform: 'translateZ(0)',
             }}
           />
         ))}
       </div>
 
-      {/* fade mask */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -284,41 +296,32 @@ export default function Home() {
       >
         <p className="text-center text-xs font-semibold tracking-widest mb-6" style={{ color: '#9A9A9A' }}>TRUSTED BY</p>
         <div
-          className="relative flex justify-center"
+          className="relative overflow-hidden"
           onMouseEnter={() => setMarqueePaused(true)}
           onMouseLeave={() => setMarqueePaused(false)}
         >
           <div
-            className="flex gap-4 whitespace-nowrap"
+            className="flex items-center"
             style={{
+              width: 'max-content',
               animation: `marquee ${clients.length * 2.2}s linear infinite`,
               animationPlayState: marqueePaused ? 'paused' : 'running',
               willChange: 'transform',
             }}
           >
             {[...clients, ...clients].map((c, i) => (
-              <span
-                key={i}
-                className="flex-shrink-0 px-6 py-3 rounded-xl text-base font-bold tracking-tight transition-all duration-300 hover:scale-105"
-                style={{
-                  color: '#1A1A1A',
-                  opacity: 0.55,
-                  border: '1px solid rgba(26,26,26,0.08)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = '1';
-                  e.currentTarget.style.background = 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)';
-                  e.currentTarget.style.WebkitBackgroundClip = 'text';
-                  (e.currentTarget.style as any).WebkitTextFillColor = 'transparent';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = '0.55';
-                  e.currentTarget.style.background = 'none';
-                  (e.currentTarget.style as any).WebkitTextFillColor = '#1A1A1A';
-                }}
+              <div
+                key={`${c.name}-${i}`}
+                className="flex-shrink-0 flex items-center justify-center"
+                style={{ width: 148, height: 64 }}
+                title={c.name}
               >
-                {c}
-              </span>
+                <img
+                  src={c.logo}
+                  alt={c.name}
+                  className="max-h-10 md:max-h-12 w-auto max-w-[120px] object-contain transition-transform duration-300 hover:scale-110"
+                />
+              </div>
             ))}
           </div>
         </div>
