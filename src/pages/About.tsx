@@ -3,6 +3,15 @@ import HexIcon from '../components/HexIcon';
 import Icon from '../components/Icon';
 import { NavLink } from 'react-router';
 
+const teamPhotoModules = import.meta.glob('../assets/team/img*.{jpeg,jpg,png,webp}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
+
+const sortedTeamPhotos = Object.keys(teamPhotoModules)
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  .map((key) => teamPhotoModules[key]);
+
 const ethos = [
   { value: 'Client Centric', size: 'text-2xl' },
   { value: 'Innovation at Core', size: 'text-lg' },
@@ -15,40 +24,40 @@ const ethos = [
 
 const team = [
   {
-    name: 'Peter Solomon',
+    name: 'Rtn. Peter Solomon',
     title: 'Managing Director / Chief Insights Officer',
-    bio: '28+ years in marketing communications. Leads strategic direction and oversees client partnerships across all Insight Hive operations.',
-    img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop&auto=format',
+    bio: 'Holds two Bachelor\'s degrees and an MBA from Cardiff Metropolitan University, UK. Served two terms on the board of the 4A\'s Sri Lanka Chapter, including as 2nd Vice President. Lectures on Advertising Media and mentors young talent entering integrated media planning and buying. 28+ years of marketing communications experience across local and international brands.',
+    img: sortedTeamPhotos[0],
   },
   {
     name: 'Irshad Farook',
     title: 'Director Operations',
-    bio: '14+ years in integrated media planning & buying. Drives operational excellence and media investment strategy.',
-    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format',
+    bio: 'Brings 14+ years of leadership in integrated media planning and buying, combining global best practices from GroupM with deep local market know-how. The engine behind flawless campaign execution for clients like Pepsi, Red Bull, Dr. Fixit, Uber, Commercial Bank, NDB and Asian Paints, including the 2019 and 2024 Presidential Election campaigns.',
+    img: sortedTeamPhotos[1],
   },
   {
     name: 'Ishani Anuradha',
     title: 'Head of Strategy',
-    bio: '16+ years across GroupM and dentsu. Architect of brand and consumer strategy frameworks.',
-    img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=300&h=300&fit=crop&auto=format',
+    bio: '16+ years of hands-on expertise in media planning and buying across top multinational agencies. Led strategic campaigns at GroupM and dentsu, working with Unilever, Reckitt, Upfield and Astra. Her deep MNC exposure and passion for data-driven insight make her the architect of powerful, future-focused strategies.',
+    img: sortedTeamPhotos[2],
   },
   {
     name: 'Yoosuf Faizal',
     title: 'Head of Digital Strategy',
-    bio: '10+ years in brand & communications. Leads digital transformation and performance marketing.',
-    img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&auto=format',
+    bio: 'A senior communications and brand leader with 10+ years shaping corporate narratives across internal, external, media, employer brand and ESG communications. Most recently led Corporate Communications and Brand at Brandix, and previously headed brand and digital strategy at Virtusa Sri Lanka, partnering with Dialog, Union Assurance, Hero and Maliban.',
+    img: sortedTeamPhotos[3],
   },
   {
     name: 'Madhavi Jayawardena',
     title: 'Manager, Integrated Media Planning',
-    bio: '7+ years orchestrating multi-channel media campaigns for leading Sri Lankan and global brands.',
-    img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&auto=format',
+    bio: '7+ years of expertise in integrated media planning, social media management and paid media, honed at GroupM, Nextage and Leaeap Media. Has crafted data-driven, omni-channel campaigns for brands such as Unilever, Emirates, Solo, Java Institute, Coloma and UNFPA.',
+    img: sortedTeamPhotos[4],
   },
   {
     name: 'Shalika Udeni',
     title: 'Head of Finance',
-    bio: '15+ years. CMA Sri Lanka. Ensures financial integrity and transparent reporting on all client media investments.',
-    img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&auto=format',
+    bio: 'A seasoned finance professional with 15+ years leading finance and revenue operations across multi-entity organizations, spanning billing, revenue recognition, forecasting and compliance. Previously Group Head - Finance at Publicis Groupe Sri Lanka. CMA (Sri Lanka), proficient in SAP and Altair.',
+    img: sortedTeamPhotos[5],
   },
 ];
 
@@ -201,22 +210,28 @@ function TeamCard({ name, title, bio, img }: { name: string; title: string; bio:
   const [flipped, setFlipped] = useState(false);
   return (
     <div
-      className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1"
+      className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 flex flex-col h-full"
       style={{ background: '#fff', border: '1px solid rgba(26,26,26,0.07)' }}
       onMouseEnter={() => setFlipped(true)}
       onMouseLeave={() => setFlipped(false)}
     >
-      <div className="relative">
-        <img src={img} alt={name} className="w-full h-56 object-cover" />
+      {/* Fixed-size image box: every card gets the exact same photo dimensions */}
+      <div className="relative w-full shrink-0" style={{ height: '280px' }}>
+        <img
+          src={img}
+          alt={name}
+          className="absolute inset-0 w-full h-full"
+          style={{ objectFit: 'cover', objectPosition: 'center 15%' }}
+        />
         <div
-          className="absolute inset-0 p-6 flex flex-col justify-end transition-opacity duration-300"
-          style={{ background: 'linear-gradient(to top, rgba(26,26,26,0.95) 0%, rgba(26,26,26,0.5) 60%, transparent 100%)', opacity: flipped ? 1 : 0 }}
+          className="absolute inset-0 p-6 flex flex-col justify-end transition-opacity duration-300 overflow-y-auto"
+          style={{ background: 'linear-gradient(to top, rgba(26,26,26,0.95) 0%, rgba(26,26,26,0.75) 55%, transparent 100%)', opacity: flipped ? 1 : 0 }}
         >
-          <p className="text-sm leading-relaxed" style={{ color: '#F2F2F2' }}>{bio}</p>
+          <p className="text-xs leading-relaxed" style={{ color: '#F2F2F2' }}>{bio}</p>
         </div>
       </div>
-      <div className="p-6">
-        <h3 className="font-bold text-base mb-1" style={{ color: '#1A1A1A' }}>{name}</h3>
+      <div className="p-6 flex flex-col justify-center" style={{ minHeight: '96px' }}>
+        <h3 className="font-bold text-base mb-1 truncate" style={{ color: '#1A1A1A' }}>{name}</h3>
         <p className="text-xs" style={{ color: '#9A9A9A' }}>{title}</p>
       </div>
     </div>
