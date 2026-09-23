@@ -1,9 +1,8 @@
 import { NavLink } from 'react-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import HexIcon from '../components/HexIcon';
 import { useInView } from '../components/useInView';
 import { useCountUp } from '../components/useCountUp';
-import logo from '../assets/logo.png';
 import Icon, { type IconName } from '../components/Icon';
 
 // Full real client/portfolio list (from the credentials deck)
@@ -76,53 +75,129 @@ function StatCard({ prefix, number, suffix, label, started }: { prefix?: string;
   );
 }
 
-/** Replaces the old hexagon graphic: an interactive tilt card for the logo, following the cursor. */
-function InteractiveLogoCard() {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ rx: 0, ry: 0, mx: 50, my: 50 });
+/* ---------- Honeycomb hero background ("bee home") ---------- */
 
-  const onMouseMove = (e: React.MouseEvent) => {
-    const el = cardRef.current;
+const GRAD_STOPS = ['#92278F', '#C2436B', '#F7941F'];
+
+function lerpChannel(a: number, b: number, t: number) {
+  return Math.round(a + (b - a) * t);
+}
+function hexToRgb(hex: string) {
+  const v = parseInt(hex.slice(1), 16);
+  return { r: (v >> 16) & 0xff, g: (v >> 8) & 0xff, b: v & 0xff };
+}
+function gradientColorAt(t: number) {
+  const clamped = Math.max(0, Math.min(1, t));
+  const [c0, c1, c2] = GRAD_STOPS.map(hexToRgb);
+  const seg = clamped <= 0.5 ? [c0, c1, clamped / 0.5] : [c1, c2, (clamped - 0.5) / 0.5];
+  const [from, to, localT] = seg as [{ r: number; g: number; b: number }, { r: number; g: number; b: number }, number];
+  return `rgb(${lerpChannel(from.r, to.r, localT)}, ${lerpChannel(from.g, to.g, localT)}, ${lerpChannel(from.b, to.b, localT)})`;
+}
+
+type Hex = { key: string; x: number; y: number; color: string; opacity: number };
+
+function HiveBackground() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const el = containerRef.current;
     if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
-    setTilt({
-      rx: (0.5 - py) * 14,
-      ry: (px - 0.5) * 14,
-      mx: px * 100,
-      my: py * 100,
-    });
-  };
-  const onMouseLeave = () => setTilt({ rx: 0, ry: 0, mx: 50, my: 50 });
+    let frame: number;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        setSize({ width: el.offsetWidth, height: el.offsetHeight });
+      });
+    };
+    update();
+    const obs = new ResizeObserver(update);
+    obs.observe(el);
+    return () => {
+      obs.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  // Larger hexes = fewer DOM nodes = much smoother
+  const hexSize = 96;
+  const hexW = hexSize;
+  const hexH = hexSize * 1.1547;
+  const rowGap = hexH * 0.76;
+
+  const hexes: Hex[] = useMemo(() => {
+    if (size.width === 0 || size.height === 0) return [];
+
+    // Smaller buffer than before
+    const cols = Math.ceil(size.width / (hexW * 0.98)) + 2;
+    const rows = Math.ceil(size.height / rowGap) + 2;
+    const startCol = -1;
+    const startRow = -1;
+    const list: Hex[] = [];
+
+    for (let r = startRow; r < rows; r++) {
+      for (let c = startCol; c < cols; c++) {
+        const offsetX = ((r % 2) + 2) % 2 === 1 ? hexW / 2 : 0;
+        const x = c * hexW * 0.98 + offsetX;
+        const y = r * rowGap;
+        const t = Math.max(0, Math.min(1, x / size.width));
+        list.push({
+          key: `${r}-${c}`,
+          x,
+          y,
+          color: gradientColorAt(t),
+          opacity: 0.12 + t * 0.48,
+        });
+      }
+    }
+    return list;
+  }, [size.width, size.height]);
 
   return (
-    <div style={{ perspective: 1000 }}>
-      <div
-        ref={cardRef}
-        onMouseMove={onMouseMove}
-        onMouseLeave={onMouseLeave}
-        className="relative rounded-3xl px-14 py-12 cursor-pointer transition-transform duration-200 ease-out"
-        style={{
-          background: '#fff',
-          border: '1px solid rgba(26,26,26,0.07)',
-          transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
-          boxShadow: '0 24px 60px rgba(146,39,143,0.14)',
-        }}
-      >
-        <div
-          className="absolute inset-0 rounded-3xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at ${tilt.mx}% ${tilt.my}%, rgba(146,39,143,0.12), transparent 60%)`,
-          }}
-        />
-        <img
-          src={logo}
-          alt="The Insight Hive"
-          className="w-64 max-w-full relative"
-          style={{ transform: 'translateZ(30px)' }}
-        />
+    <div
+      ref={containerRef}
+      className="absolute inset-0 hidden lg:block pointer-events-none overflow-hidden"
+      aria-hidden="true"
+      style={{ contain: 'layout paint' }}
+    >
+      <div className="absolute inset-0">
+        {hexes.map((h) => (
+          <div
+            key={h.key}
+            className="absolute pointer-events-auto hive-hex"
+            style={{
+              left: h.x,
+              top: h.y,
+              width: hexW,
+              height: hexH,
+              clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+              background: h.color,
+              opacity: h.opacity,
+              willChange: 'transform',
+              transform: 'translateZ(0)', // force GPU layer
+            }}
+          />
+        ))}
       </div>
+
+      {/* fade mask */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(90deg, #EFEFEF 0%, rgba(239,239,239,0.85) 30%, rgba(239,239,239,0.25) 55%, rgba(239,239,239,0) 75%)',
+        }}
+      />
+
+      <style>{`
+        .hive-hex {
+          transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+        }
+        .hive-hex:hover {
+          transform: scale(1.15) translateZ(0);
+          opacity: 0.85 !important;
+        }
+      `}</style>
     </div>
   );
 }
@@ -141,13 +216,14 @@ export default function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden" style={{ background: '#EFEFEF' }}>
+      <section className="relative overflow-hidden" style={{ background: '#EFEFEF', minHeight: '86vh' }}>
+        <HiveBackground />
         <div className="absolute inset-0 pointer-events-none">
-          <div style={{ position: 'absolute', top: -120, right: -120, width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(146,39,143,0.07) 0%, transparent 70%)' }} />
-          <div style={{ position: 'absolute', bottom: -80, left: -80, width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(247,148,31,0.06) 0%, transparent 70%)' }} />
+          <div style={{ position: 'absolute', top: -120, right: -120, width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(146,39,143,0.05) 0%, transparent 70%)' }} />
+          <div style={{ position: 'absolute', bottom: -80, left: -80, width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(247,148,31,0.05) 0%, transparent 70%)' }} />
         </div>
-        <div className="max-w-7xl mx-auto px-6 py-16 flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-1">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 flex items-center" style={{ minHeight: '86vh' }}>
+          <div className="max-w-2xl">
             <div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-8 tracking-widest"
               style={{ background: 'rgba(146,39,143,0.1)', color: '#92278F', animation: 'fadeUp 0.6s ease both' }}
@@ -187,15 +263,10 @@ export default function Home() {
                 onMouseLeave={heroSeeWork.onMouseLeave}
                 style={heroSeeWork.style}
                 className="font-semibold px-8 py-4 rounded-full text-base border-2 transition-all hover:bg-[#1A1A1A] hover:text-[#EFEFEF]"
-                css={undefined}
-                {...{}}
               >
                 See Our Work
               </NavLink>
             </div>
-          </div>
-          <div className="flex-shrink-0" style={{ animation: 'fadeUp 0.7s ease 0.15s both' }}>
-            <InteractiveLogoCard />
           </div>
         </div>
         <style>{`
@@ -360,7 +431,7 @@ export default function Home() {
           </div>
           <div ref={workRef} className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <CaseCard
-              to="/our-work#astra-rasa-mathaka"
+              to="/astra-rasa-mathaka"
               title="Astra — Rasa Mathaka"
               tag="Integrated Campaign"
               result="83M media value · 993% ROMI"
