@@ -6,6 +6,7 @@ import WhatWeDo from './pages/WhatWeDo';
 import OurWork from './pages/OurWork';
 import CaseStudyAstra from './pages/CaseStudyAstra';
 import Contact from './pages/Contact';
+import CaseStudyKiwi from './pages/Casestudykiwi';
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
       { path: 'what-we-do', Component: WhatWeDo },
       { path: 'our-work', Component: OurWork },
       { path: 'astra-rasa-mathaka', Component: CaseStudyAstra },
+      { path: 'kiwi-get-ready-to-shine', Component: CaseStudyKiwi },
       { path: 'contact', Component: Contact },
     ],
   },

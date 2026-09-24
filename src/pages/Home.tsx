@@ -6,6 +6,7 @@ import { useCountUp } from '../components/useCountUp';
 import Icon, { type IconName } from '../components/Icon';
 
 import image01 from "../assets/rasamathakagallery/img07.jpg"
+import image02 from "../assets/home/img01.png"
 
 const clientNames = [
   'Emirates', 'Litro Gas', 'Euro Motors', 'Marico', 'All Out', 'Baygon',
@@ -452,12 +453,12 @@ export default function Home() {
               delay={0}
             />
             <CaseCard
-              to="/our-work#kiwi-shoe-polish"
+              to="/kiwi-get-ready-to-shine"
               title="KIWI — Shoe Polish"
               tag="Integrated Campaign"
               result="Full campaign breakdown on Our Work"
               bg="#1A1A1A"
-              img="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&h=500&fit=crop&auto=format"
+              img={image02}
               visible={workVisible}
               delay={120}
             />

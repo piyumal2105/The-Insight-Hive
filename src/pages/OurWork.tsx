@@ -4,6 +4,9 @@ import { useCountUp } from '../components/useCountUp';
 import { NavLink } from 'react-router';
 import Icon from '../components/Icon';
 
+// KIWI "Get Ready to Shine" campaign creative
+import kiwiCreative from '../assets/ourwork/img07.jpg';
+
 const clientLogoModules = import.meta.glob('../assets/ourwork/img*.{png,jpg,jpeg,webp}', {
   eager: true,
   import: 'default',
@@ -220,16 +223,30 @@ export default function OurWork() {
         </div>
       </section>
 
-      {/* Secondary teaser */}
-      <section className="py-16" style={{ background: '#fff' }}>
+      {/* KIWI Shoe Polish case study teaser */}
+      <section id="kiwi-shoe-polish" className="py-16 scroll-mt-24" style={{ background: '#fff' }}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="rounded-2xl overflow-hidden flex flex-col md:flex-row" style={{ background: '#EFEFEF', border: '1px solid rgba(26,26,26,0.07)' }}>
-            <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=500&h=300&fit=crop&auto=format" alt="KIWI Shoe Polish" className="w-full md:w-72 h-48 md:h-auto object-cover" />
+            <img
+              src={kiwiCreative}
+              alt="KIWI Shoe Polish — Get Ready to Shine campaign creative"
+              className="w-full md:w-80 h-56 md:h-auto object-cover flex-shrink-0"
+              style={{ objectPosition: '50% 18%', background: '#fff' }}
+            />
             <div className="p-8 flex flex-col justify-center">
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 w-fit" style={{ background: 'rgba(122,46,140,0.1)', color: '#7A2E8C' }}>PHASE 2</span>
-              <h3 className="font-extrabold text-2xl mb-3" style={{ color: '#1A1A1A' }}>KIWI Shoe Polish — Brand Activation</h3>
-              <p className="mb-6" style={{ color: '#9A9A9A' }}>A full brand reactivation campaign for a heritage product — driving modern relevance through integrated media and on-ground activations.</p>
-              <span className="text-sm font-semibold" style={{ color: '#9A9A9A' }}>Full case study coming soon</span>
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 w-fit" style={{ background: 'rgba(225,10,23,0.1)', color: '#E10A17' }}>CASE STUDY</span>
+              <h3 className="font-extrabold text-2xl mb-3" style={{ color: '#1A1A1A' }}>KIWI Shoe Polish — Get Ready to Shine</h3>
+              <p className="mb-6 max-w-2xl leading-relaxed" style={{ color: '#9A9A9A' }}>
+                Re-establishing KIWI in Sri Lanka after a two-year hiatus through a creative campaign built around popular TV shows, the Sinhala and Hindu New Year, and the ICC Cricket World Cup 2023. It reached 4 million households through TV and generated 21.37 million impressions online.
+              </p>
+              <NavLink
+                to="/kiwi-get-ready-to-shine"
+                className="inline-flex items-center gap-2 font-semibold text-sm px-6 py-3 rounded-full whitespace-nowrap w-fit hover:opacity-90 transition-opacity"
+                style={{ background: '#1A1A1A', color: '#F2F2F2' }}
+              >
+                View Full Case Study
+                <Icon name="arrow-right" size={16} />
+              </NavLink>
             </div>
           </div>
         </div>
