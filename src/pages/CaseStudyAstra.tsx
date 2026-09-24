@@ -8,6 +8,21 @@ import Icon from '../components/Icon';
 import leadershipAwardsImg from '../assets/awards/sri-lanka-leadership-awards-2026.jpg';
 import dragonsAwardImg from '../assets/awards/dragons-of-sri-lanka-2026.jpg';
 
+// Gallery photos (Rasa Mathaka on-ground activation)
+import gallery01 from '../assets/rasamathakagallery/img01.jpg';
+import gallery02 from '../assets/rasamathakagallery/img02.jpg';
+import gallery03 from '../assets/rasamathakagallery/img03.jpg';
+import gallery04 from '../assets/rasamathakagallery/img04.jpg';
+import gallery05 from '../assets/rasamathakagallery/img05.jpg';
+import gallery06 from '../assets/rasamathakagallery/img06.jpg';
+import gallery07 from '../assets/rasamathakagallery/img07.jpg';
+import gallery08 from '../assets/rasamathakagallery/img08.jpg';
+import gallery09 from '../assets/rasamathakagallery/img09.jpg';
+import gallery10 from '../assets/rasamathakagallery/img10.jpg';
+import gallery11 from '../assets/rasamathakagallery/img11.jpg';
+import gallery12 from '../assets/rasamathakagallery/img12.jpg';
+import gallery13 from '../assets/rasamathakagallery/img13.jpg';
+
 const ASTRA_YELLOW = '#FADE4E';
 const ASTRA_YELLOW_DEEP = '#F0B90B';
 const INK = '#1A1A1A';
@@ -127,17 +142,23 @@ const awardBanners: { img: string; alt: string; caption: string }[] = [
     },
 ];
 
-// Gallery placeholder set — swap these for real on-ground activation /
-// memory-collection photography from the Rasa Mathaka campaign.
-const galleryImages: string[] = [
-    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700&h=900&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=700&h=500&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1531956656799-c8ea3b8b3e5f?w=700&h=700&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=700&h=900&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=700&h=500&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=700&h=700&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=700&h=900&fit=crop&auto=format',
-    'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=700&h=500&fit=crop&auto=format',
+// Real on-ground activation photography from the Rasa Mathaka campaign.
+type GalleryImage = { src: string; alt: string };
+
+const galleryImages: GalleryImage[] = [
+    { src: gallery01, alt: 'Live host on stage at the Astra Rasa Mathaka event' },
+    { src: gallery02, alt: 'Astra Home Baker stall with cakes and bakes on display' },
+    { src: gallery03, alt: 'Drone carrying a lit Astra fat spread pack across the night sky' },
+    { src: gallery04, alt: 'Astra and Delmege partner stall signage' },
+    { src: gallery05, alt: "Astra and Domino's Pizza partner stall signage" },
+    { src: gallery06, alt: 'Astra and Grand Pila Pilawoos Bamba partner stall signage' },
+    { src: gallery07, alt: 'Astra Street Food stall serving hot food to visitors' },
+    { src: gallery08, alt: 'Home bakers with cupcakes and cakes at the Astra Home Baker stall' },
+    { src: gallery09, alt: 'Crowd gathered around an Astra activation game on the grass' },
+    { src: gallery10, alt: 'Host interacting with the crowd on the mic during an activation' },
+    { src: gallery11, alt: 'Vocalist performing on stage under blue stage lights' },
+    { src: gallery12, alt: 'Drummers in yellow performing on the Astra Rasa Mathaka stage' },
+    { src: gallery13, alt: 'Singer performing on the Astra Rasa Mathaka stage at night' },
 ];
 
 function Lightbox({
@@ -147,7 +168,7 @@ function Lightbox({
     onClose,
     onNav,
 }: {
-    images: string[];
+    images: GalleryImage[];
     index: number;
     direction: 1 | -1;
     onClose: () => void;
@@ -187,8 +208,8 @@ function Lightbox({
             {/* key={index} forces a remount so the slide-in animation replays every navigation */}
             <img
                 key={index}
-                src={images[index]}
-                alt=""
+                src={images[index].src}
+                alt={images[index].alt}
                 className="max-h-[85vh] max-w-[85vw] rounded-xl object-contain"
                 onClick={(e) => e.stopPropagation()}
                 style={{
@@ -441,18 +462,23 @@ export default function CaseStudyAstra() {
                         </p>
                     </div>
                     <div ref={galleryRef} className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-                        {galleryImages.map((src, i) => (
+                        {galleryImages.map((img, i) => (
                             <button
-                                key={i}
+                                key={img.src}
                                 onClick={() => openLightbox(i)}
-                                className="block w-full rounded-xl overflow-hidden group relative"
+                                className="block w-full rounded-xl overflow-hidden group relative break-inside-avoid"
                                 style={{
                                     opacity: galleryVisible ? 1 : 0,
                                     transform: galleryVisible ? 'scale(1)' : 'scale(0.96)',
                                     transition: `opacity 0.5s ease ${i * 70}ms, transform 0.5s ease ${i * 70}ms`,
                                 }}
                             >
-                                <img src={src} alt={`Ape Rasa Mathaka ${i + 1}`} className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105" />
+                                <img
+                                    src={img.src}
+                                    alt={img.alt}
+                                    loading="lazy"
+                                    className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                                />
                                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" style={{ background: 'rgba(26,26,26,0.35)' }}>
                                     <Icon name="arrow-right" size={20} />
                                 </div>

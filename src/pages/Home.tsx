@@ -5,6 +5,8 @@ import { useInView } from '../components/useInView';
 import { useCountUp } from '../components/useCountUp';
 import Icon, { type IconName } from '../components/Icon';
 
+import image01 from "../assets/rasamathakagallery/img07.jpg"
+
 const clientNames = [
   'Emirates', 'Litro Gas', 'Euro Motors', 'Marico', 'All Out', 'Baygon',
   'Glade', 'KIWI', 'Pledge', 'Asthijeewa', 'UNDP', 'Wipro',
@@ -445,7 +447,7 @@ export default function Home() {
               tag="Integrated Campaign"
               result="83M media value · 993% ROMI"
               bg="#1A1A1A"
-              img="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=500&fit=crop&auto=format"
+              img={image01}
               visible={workVisible}
               delay={0}
             />
