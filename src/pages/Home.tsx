@@ -5,7 +5,6 @@ import { useInView } from '../components/useInView';
 import { useCountUp } from '../components/useCountUp';
 import Icon, { type IconName } from '../components/Icon';
 
-
 const clientNames = [
   'Emirates', 'Litro Gas', 'Euro Motors', 'Marico', 'All Out', 'Baygon',
   'Glade', 'KIWI', 'Pledge', 'Asthijeewa', 'UNDP', 'Wipro',
@@ -228,13 +227,14 @@ export default function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden" style={{ background: '#EFEFEF', minHeight: '86vh' }}>
+      <section className="relative overflow-hidden" style={{ background: '#EFEFEF', minHeight: 'calc(100vh - 88px)' }}>
         <HiveBackground />
         <div className="absolute inset-0 pointer-events-none">
           <div style={{ position: 'absolute', top: -120, right: -120, width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(146,39,143,0.05) 0%, transparent 70%)' }} />
           <div style={{ position: 'absolute', bottom: -80, left: -80, width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(247,148,31,0.05) 0%, transparent 70%)' }} />
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 flex items-center" style={{ minHeight: '86vh' }}>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 lg:py-20 flex items-center" style={{ minHeight: 'calc(100vh - 88px)' }}>
           <div className="max-w-2xl">
             <div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-8 tracking-widest"
@@ -243,17 +243,18 @@ export default function Home() {
               OMNICOM GROUP AFFILIATE
             </div>
             <h1
-              className="font-extrabold leading-none mb-6"
-              style={{ fontSize: 'clamp(3rem, 7vw, 5.5rem)', color: '#1A1A1A', animation: 'fadeUp 0.6s ease 0.1s both' }}
+              className="font-extrabold leading-[1.02] mb-6"
+              style={{ fontSize: 'clamp(2.75rem, 6.5vw, 5.25rem)', color: '#1A1A1A', animation: 'fadeUp 0.6s ease 0.1s both', letterSpacing: '-0.02em' }}
             >
               <span className="font-light">The</span>{' '}
-              <span style={{ background: 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>All-Rounders</span>{' '}
+              {/* nowrap + non-breaking hyphen keeps "All-Rounders" on one line */}
+              <span style={{ whiteSpace: 'nowrap', background: 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>All&#8209;Rounders</span>{' '}
               <span className="font-light">of</span>{' '}
               <span>Marketing</span>
             </h1>
             <p
               className="text-lg mb-10 max-w-xl leading-relaxed"
-              style={{ color: '#9A9A9A', animation: 'fadeUp 0.6s ease 0.2s both' }}
+              style={{ color: '#5E5E5E', animation: 'fadeUp 0.6s ease 0.2s both' }}
             >
               Brand Strategy, Consumer Insight, Creative, Integrated Media, Digital, and Data — under one roof. Founded by veterans with 44+ years combined experience.
             </p>
@@ -273,18 +274,23 @@ export default function Home() {
                 to="/our-work"
                 onMouseMove={heroSeeWork.onMouseMove}
                 onMouseLeave={heroSeeWork.onMouseLeave}
-                style={heroSeeWork.style}
+                style={{ ...heroSeeWork.style, borderColor: '#1A1A1A', background: 'rgba(255,255,255,0.5)' }}
                 className="font-semibold px-8 py-4 rounded-full text-base border-2 transition-all hover:bg-[#1A1A1A] hover:text-[#EFEFEF]"
               >
                 See Our Work
               </NavLink>
             </div>
           </div>
+
         </div>
+
         <style>{`
           @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
           }
         `}</style>
       </section>
@@ -349,7 +355,7 @@ export default function Home() {
             <h2 className="font-extrabold mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#1A1A1A' }}>
               <span className="font-light">What</span> We Do
             </h2>
-            <p style={{ color: '#9A9A9A' }} className="max-w-xl">End-to-end marketing expertise with no silos. Every specialist masters the full picture.</p>
+            <p style={{ color: '#6B6B6B' }} className="max-w-xl">End-to-end marketing expertise with no silos. Every specialist masters the full picture.</p>
           </div>
           <div ref={capsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {capabilities.map((cap, i) => (
@@ -368,7 +374,7 @@ export default function Home() {
                   <HexIcon size={52}><Icon name={cap.icon} /></HexIcon>
                 </div>
                 <h3 className="font-bold text-lg mt-5 mb-2" style={{ color: '#1A1A1A' }}>{cap.title}</h3>
-                <p className="text-sm" style={{ color: '#9A9A9A' }}>{cap.sub}</p>
+                <p className="text-sm" style={{ color: '#6B6B6B' }}>{cap.sub}</p>
               </div>
             ))}
           </div>
@@ -416,7 +422,7 @@ export default function Home() {
               >
                 <HexIcon size={60}><Icon name={p.icon} /></HexIcon>
                 <h3 className="font-extrabold text-xl mt-6 mb-3" style={{ color: '#1A1A1A' }}>{p.title}</h3>
-                <p style={{ color: '#9A9A9A' }}>{p.desc}</p>
+                <p style={{ color: '#6B6B6B' }}>{p.desc}</p>
               </div>
             ))}
           </div>
