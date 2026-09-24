@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useLocation } from 'react-router';
 import logo from '../assets/logo.png';
 
 const links = [
@@ -14,6 +14,9 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
   const [open, setOpen] = useState(false);
+  // On the home page the header floats over the hero (out of the layout flow), so the
+  // honeycomb background runs behind the nav instead of a solid strip above it.
+  const isHome = useLocation().pathname === '/';
 
   useEffect(() => {
     const onScroll = () => {
@@ -29,20 +32,23 @@ export default function Nav() {
   return (
     // In-flow sticky wrapper: page layouts stay unchanged, the pill floats over content on scroll.
     <header
-      className="sticky top-0 z-50 px-3 sm:px-6 py-3 transition-colors duration-300"
-      style={{ background: scrolled ? 'transparent' : '#EFEFEF' }}
+      className={`${isHome ? 'fixed inset-x-0' : 'sticky'} top-0 z-50 px-3 sm:px-6 py-3 transition-colors duration-300`}
+      style={{ background: scrolled || isHome ? 'transparent' : '#EFEFEF' }}
     >
       <nav
         aria-label="Main"
         className="relative max-w-6xl mx-auto rounded-full transition-all duration-300"
         style={{
-          background: scrolled ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.55)',
+          // More opaque white so the pill clearly separates from the grey header / page content
+          background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.85)',
           backdropFilter: 'blur(16px) saturate(160%)',
           WebkitBackdropFilter: 'blur(16px) saturate(160%)',
-          border: '1px solid rgba(255,255,255,0.7)',
+          // Faint brand-purple hairline defines the edge
+          border: '1px solid rgba(146,39,143,0.10)',
+          // Brand-tinted shadow, visible at the top and stronger on scroll
           boxShadow: scrolled
-            ? '0 10px 30px -10px rgba(146,39,143,0.25), 0 2px 8px rgba(26,26,26,0.06)'
-            : '0 2px 10px rgba(26,26,26,0.04)',
+            ? '0 14px 34px -8px rgba(146,39,143,0.32), 0 4px 12px rgba(26,26,26,0.10)'
+            : '0 8px 24px -6px rgba(146,39,143,0.20), 0 2px 8px rgba(26,26,26,0.08)',
         }}
       >
         <div className={`flex items-center justify-between pl-5 pr-2 transition-all duration-300 ${scrolled ? 'h-14' : 'h-16'}`}>

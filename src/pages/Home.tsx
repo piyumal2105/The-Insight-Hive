@@ -229,15 +229,19 @@ export default function Home() {
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden" style={{ background: '#EFEFEF', minHeight: 'calc(100vh - 88px)' }}>
+      {/* Hero — fills the full screen; the nav floats over the top of it */}
+      <section className="relative overflow-hidden" style={{ background: '#EFEFEF', minHeight: '100vh' }}>
         <HiveBackground />
         <div className="absolute inset-0 pointer-events-none">
           <div style={{ position: 'absolute', top: -120, right: -120, width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(146,39,143,0.05) 0%, transparent 70%)' }} />
           <div style={{ position: 'absolute', bottom: -80, left: -80, width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(247,148,31,0.05) 0%, transparent 70%)' }} />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 lg:py-20 flex items-center" style={{ minHeight: 'calc(100vh - 88px)' }}>
+        {/* paddingTop keeps the content clear of the floating nav */}
+        <div
+          className="relative z-10 max-w-7xl mx-auto px-6 pb-16 lg:pb-20 flex items-center"
+          style={{ minHeight: '100vh', paddingTop: 110 }}
+        >
           <div className="max-w-2xl">
             <div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-8 tracking-widest"
