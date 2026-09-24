@@ -2,15 +2,25 @@ import { useEffect, useRef, useState } from 'react';
 import { useInView } from '../components/useInView';
 import { useCountUp } from '../components/useCountUp';
 import { NavLink } from 'react-router';
-import Icon, { type IconName } from '../components/Icon';
+import Icon from '../components/Icon';
 
+const clientLogoModules = import.meta.glob('../assets/ourwork/img*.{png,jpg,jpeg,webp}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
+
+const sortedClientLogos = Object.keys(clientLogoModules)
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  .map((key) => clientLogoModules[key]);
+
+// sortedClientLogos: [0] img01 (UNDP), [1] img02 (Emirates), [2] img03 (Litro Gas), [3] img04, [4] img05 (Lemonade), [5] img06
 const clients = [
-  { name: 'Emirates', discipline: 'Integrated Media Planning', icon: 'plane' as IconName },
-  { name: 'Litro Gas', discipline: 'Brand Strategy & Media', icon: 'flame' as IconName },
-  { name: 'UNDP', discipline: 'Social Impact Communications', icon: 'globe' as IconName },
-  { name: 'Astra', discipline: 'Integrated Campaign, Brand Strategy', icon: 'star' as IconName },
-  { name: 'KIWI Shoe Polish', discipline: 'Brand Activation & Media', icon: 'shoe' as IconName },
-  { name: 'Sri Lanka Cricket', discipline: 'Integrated Media', icon: 'cricket' as IconName },
+  { name: 'Emirates', discipline: 'Integrated Media Planning', logo: sortedClientLogos[1] },
+  { name: 'Litro Gas', discipline: 'Brand Strategy & Media', logo: sortedClientLogos[2] },
+  { name: 'UNDP', discipline: 'Social Impact Communications', logo: sortedClientLogos[0] },
+  { name: 'Astra', discipline: 'Integrated Campaign, Brand Strategy', logo: sortedClientLogos[3] },
+  { name: 'KIWI Shoe Polish', discipline: 'Brand Activation & Media', logo: sortedClientLogos[5] },
+  { name: 'Lemonade', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[4] },
 ];
 
 const awards = [
@@ -86,9 +96,19 @@ export default function OurWork() {
                 onMouseEnter={() => setHoveredClient(i)}
                 onMouseLeave={() => setHoveredClient(null)}
               >
-                <span className="mb-4" style={{ color: hoveredClient === i ? '#E8722E' : '#7A2E8C' }}><Icon name={c.icon} size={38} /></span>
+                <div
+                  className="w-full flex items-center justify-center rounded-xl mb-4 bg-white"
+                  style={{ height: '84px', padding: '10px' }}
+                >
+                  <img
+                    src={c.logo}
+                    alt={c.name}
+                    className="max-h-full max-w-full"
+                    style={{ objectFit: 'contain' }}
+                  />
+                </div>
                 <h3 className="font-bold text-lg mb-1 transition-colors" style={{ color: hoveredClient === i ? '#F2F2F2' : '#1A1A1A' }}>{c.name}</h3>
-                <p className="text-xs transition-colors" style={{ color: hoveredClient === i ? '#9A9A9A' : '#9A9A9A' }}>{c.discipline}</p>
+                <p className="text-xs transition-colors" style={{ color: '#9A9A9A' }}>{c.discipline}</p>
               </div>
             ))}
           </div>
@@ -119,14 +139,24 @@ export default function OurWork() {
       {/* Case study */}
       <section className="py-24" style={{ background: '#EFEFEF' }}>
         <div className="max-w-7xl mx-auto px-6">
-          <div className="mb-6">
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: 'linear-gradient(90deg, #7A2E8C, #C2436B, #E8722E)', color: '#fff' }}>FEATURED CASE STUDY</span>
-            <h2 className="font-extrabold mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#1A1A1A' }}>
-              Astra — <span className="font-light">Rasa Mathaka</span>
-            </h2>
-            <p className="max-w-2xl leading-relaxed" style={{ color: '#9A9A9A' }}>
-              An integrated campaign reconnecting Sri Lankans with 50+ years of nostalgic heritage. Nationwide memory collection, immersive activations, and a media strategy that delivered industry-defining results.
-            </p>
+          <div className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={{ background: 'linear-gradient(90deg, #7A2E8C, #C2436B, #E8722E)', color: '#fff' }}>FEATURED CASE STUDY</span>
+              <h2 className="font-extrabold mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#1A1A1A' }}>
+                Astra — <span className="font-light">Rasa Mathaka</span>
+              </h2>
+              <p className="max-w-2xl leading-relaxed" style={{ color: '#9A9A9A' }}>
+                An integrated campaign reconnecting Sri Lankans with 50+ years of nostalgic heritage. Nationwide memory collection, immersive activations, and a media strategy that delivered industry-defining results.
+              </p>
+            </div>
+            <NavLink
+              to="/astra-rasa-mathaka"
+              className="inline-flex items-center gap-2 font-semibold text-sm px-6 py-3 rounded-full whitespace-nowrap hover:opacity-90 transition-opacity"
+              style={{ background: '#1A1A1A', color: '#F2F2F2' }}
+            >
+              View Full Case Study
+              <Icon name="arrow-right" size={16} />
+            </NavLink>
           </div>
 
           {/* 4-step framework */}
@@ -170,13 +200,21 @@ export default function OurWork() {
                 <p className="text-xs" style={{ color: '#9A9A9A' }}>Volume share growth Q1 2025</p>
               </div>
             </div>
-            <div className="mt-10 text-center">
+            <div className="mt-10 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
               <div className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)' }}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)' }}>
                   <Icon name="play" size={18} className="text-white" />
                 </div>
                 <span className="font-semibold" style={{ color: '#F2F2F2' }}>Watch the Rasa Mathaka Journey 2025</span>
               </div>
+              <NavLink
+                to="/astra-rasa-mathaka"
+                className="inline-flex items-center gap-2 font-semibold text-sm px-6 py-4 rounded-2xl hover:opacity-80 transition-opacity"
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: '#F2F2F2' }}
+              >
+                Read the full story
+                <Icon name="arrow-right" size={16} />
+              </NavLink>
             </div>
           </div>
         </div>
