@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import Icon, { type IconName } from '../components/Icon';
 
+const socialLinks: Record<string, string> = {
+  linkedin: 'https://lk.linkedin.com/company/the-insight-hive',
+  facebook: 'https://www.facebook.com/p/The-Insight-Hive-100094602075925/',
+  instagram: 'https://www.instagram.com/dinsighthive/',
+};
+
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', company: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
@@ -42,10 +48,17 @@ export default function Contact() {
                 <h3 className="font-bold text-sm tracking-widest mb-6" style={{ color: '#9A9A9A' }}>FOLLOW US</h3>
                 <div className="flex gap-4">
                   {([['linkedin', 'LinkedIn'], ['facebook', 'Facebook'], ['instagram', 'Instagram']] as [IconName, string][]).map(([icon, name]) => (
-                    <div key={name} className="group flex items-center gap-2 cursor-pointer">
+                    <a
+                      key={name}
+                      href={socialLinks[icon]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={name}
+                      className="group flex items-center gap-2 cursor-pointer"
+                    >
                       <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all group-hover:scale-110" style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)', color: '#fff' }}><Icon name={icon} size={19} /></div>
                       <span className="text-sm font-medium" style={{ color: '#9A9A9A' }}>{name}</span>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>

@@ -28,17 +28,17 @@ function InstagramIcon({ size = 16 }: { size?: number }) {
 const socials = [
   {
     label: 'LinkedIn',
-    href: 'https://www.linkedin.com/company/theinsighthive', // ← replace with real URL
+    href: 'https://lk.linkedin.com/company/the-insight-hive',
     icon: <LinkedInIcon size={15} />,
   },
   {
     label: 'Facebook',
-    href: 'https://www.facebook.com/theinsighthive', // ← replace with real URL
+    href: 'https://www.facebook.com/p/The-Insight-Hive-100094602075925/',
     icon: <FacebookIcon size={15} />,
   },
   {
     label: 'Instagram',
-    href: 'https://www.instagram.com/theinsighthive', // ← replace with real URL
+    href: 'https://www.instagram.com/dinsighthive/',
     icon: <InstagramIcon size={15} />,
   },
 ];
