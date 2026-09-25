@@ -42,6 +42,12 @@ export default function Contact() {
                 <ContactItem icon="pin" label="Address" value="63 Fife Road, Colombo 5, Sri Lanka" />
                 <ContactItem icon="phone" label="Phone" value="+94 112 56 76 26" href="tel:+94112567626" />
                 <ContactItem icon="mail" label="Email" value="info@dinsighthive.com" href="mailto:info@dinsighthive.com" />
+                <ContactItem
+                  icon="clock"
+                  label="Working Hours"
+                  value="Mon – Fri: 9.30 AM – 5.30 PM"
+                  subValue="Saturday & Sunday: Closed"
+                />
               </div>
 
               <div className="mt-12">
@@ -81,7 +87,7 @@ export default function Contact() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="p-8 rounded-2xl flex flex-col gap-5" style={{ background: '#fff', border: '1px solid rgba(26,26,26,0.07)' }}>
-                  <h2 className="font-extrabold text-xl mb-2" style={{ color: '#1A1A1A' }}>Send an Enquiry</h2>
+                  <h2 className="font-extrabold text-xl mb-2" style={{ color: '#1A1A1A' }}>Send an Inquiry</h2>
                   {[
                     { key: 'name', label: 'Name', type: 'text', placeholder: 'Your full name' },
                     { key: 'email', label: 'Email', type: 'email', placeholder: 'you@company.com' },
@@ -145,7 +151,19 @@ export default function Contact() {
   );
 }
 
-function ContactItem({ icon, label, value, href }: { icon: IconName; label: string; value: string; href?: string }) {
+function ContactItem({
+  icon,
+  label,
+  value,
+  subValue,
+  href,
+}: {
+  icon: IconName;
+  label: string;
+  value: string;
+  subValue?: string;
+  href?: string;
+}) {
   return (
     <div className="flex items-start gap-4">
       <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(122,46,140,0.1)', color: '#7A2E8C' }}><Icon name={icon} size={22} /></div>
@@ -155,6 +173,9 @@ function ContactItem({ icon, label, value, href }: { icon: IconName; label: stri
           <a href={href} className="font-semibold hover:opacity-70 transition-opacity" style={{ color: '#1A1A1A' }}>{value}</a>
         ) : (
           <p className="font-semibold" style={{ color: '#1A1A1A' }}>{value}</p>
+        )}
+        {subValue && (
+          <p className="text-sm mt-0.5" style={{ color: '#9A9A9A' }}>{subValue}</p>
         )}
       </div>
     </div>

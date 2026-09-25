@@ -3,6 +3,7 @@ export type IconName =
   | 'bolt'
   | 'chart'
   | 'check'
+  | 'clock'
   | 'creative'
   | 'cricket'
   | 'facebook'
@@ -78,6 +79,8 @@ export default function Icon({
       return <svg {...common}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg>;
     case 'check':
       return <svg {...common}><path d="m5 12 4 4L19 6" /></svg>;
+    case 'clock':
+      return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></svg>;
     case 'plane':
       return <svg {...common}><path d="m22 2-8 20-3-9-9-3ZM11 13l5-5" /></svg>;
     case 'flame':
