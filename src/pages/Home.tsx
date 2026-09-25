@@ -5,8 +5,11 @@ import { useInView } from '../components/useInView';
 import { useCountUp } from '../components/useCountUp';
 import Icon, { type IconName } from '../components/Icon';
 
-import image01 from "../assets/rasamathakagallery/img07.jpg"
+import image01 from "../assets/home/img05.png"
 import image02 from "../assets/home/img01.png"
+import philosophyPassion from "../assets/home/img02.png"
+import philosophyTrust from "../assets/home/img03.png"
+import philosophyDedication from "../assets/home/img04.png"
 
 const clientNames = [
   'Emirates', 'Litro Gas', 'Euro Motors', 'Marico', 'All Out', 'Baygon',
@@ -39,9 +42,9 @@ const capabilities = [
 ];
 
 const pillars = [
-  { icon: 'heart' as IconName, title: 'Big on Passion', desc: 'Every brief gets the best version of us.' },
-  { icon: 'bolt' as IconName, title: 'Fierce on Dedication', desc: 'We stay until the work is right, not just done.' },
-  { icon: 'handshake' as IconName, title: 'Built on Trust', desc: 'Transparent, audited, and accountable.' },
+  { image: philosophyPassion, title: 'Big on Passion', desc: 'Every brief gets the best version of us.' },
+  { image: philosophyDedication, title: 'Fierce on Dedication', desc: 'We stay until it’s right, not just finished.' },
+  { image: philosophyTrust, title: 'Built on Trust', desc: 'Transparent, audited, and accountable.' },
 ];
 
 /** Generic reveal-on-scroll wrapper: fades + slides up a grid of children, staggered. */
@@ -427,7 +430,11 @@ export default function Home() {
                   transitionDelay: `${i * 150}ms`,
                 }}
               >
-                <HexIcon size={60}><Icon name={p.icon} /></HexIcon>
+                <img
+                  src={p.image}
+                  alt={p.title}
+                  className="mx-auto w-24 md:w-28 h-auto transition-transform duration-300 hover:scale-105"
+                />
                 <h3 className="font-extrabold text-xl mt-6 mb-3" style={{ color: '#1A1A1A' }}>{p.title}</h3>
                 <p style={{ color: '#6B6B6B' }}>{p.desc}</p>
               </div>
