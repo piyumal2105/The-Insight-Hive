@@ -3,6 +3,7 @@ import Nav from './Nav';
 import Footer from './Footer';
 import Bee from './Bee';
 import ScrollToTop from './ScrollToTop';
+import BackToTop from './BackToTop';
 
 export default function Root() {
   return (
@@ -14,6 +15,7 @@ export default function Root() {
       </main>
       <Footer />
       <Bee />
+      <BackToTop />
     </div>
   );
 }
