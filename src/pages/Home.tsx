@@ -246,12 +246,12 @@ export default function Home() {
           style={{ minHeight: '100vh', paddingTop: 110 }}
         >
           <div className="max-w-2xl">
-            <div
+            {/* <div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-8 tracking-widest"
               style={{ background: 'rgba(146,39,143,0.1)', color: '#92278F', animation: 'fadeUp 0.6s ease both' }}
             >
               OMNICOM GROUP AFFILIATE
-            </div>
+            </div> */}
             <h1
               className="font-extrabold leading-[1.02] mb-6"
               style={{ fontSize: 'clamp(2.75rem, 6.5vw, 5.25rem)', color: '#1A1A1A', animation: 'fadeUp 0.6s ease 0.1s both', letterSpacing: '-0.02em' }}

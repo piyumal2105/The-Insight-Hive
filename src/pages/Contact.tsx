@@ -70,7 +70,7 @@ export default function Contact() {
               </div>
 
               <div className="mt-12 p-6 rounded-2xl" style={{ background: '#fff', border: '1px solid rgba(26,26,26,0.07)' }}>
-                <div className="text-xs font-semibold mb-2 tracking-wider" style={{ color: '#9A9A9A' }}>OMNICOM GROUP AFFILIATE</div>
+                {/* <div className="text-xs font-semibold mb-2 tracking-wider" style={{ color: '#9A9A9A' }}>OMNICOM GROUP AFFILIATE</div> */}
                 <p className="text-sm" style={{ color: '#9A9A9A' }}>Working alongside UM Worldwide and Initiative Worldwide — global networks in 100+ countries.</p>
               </div>
             </div>

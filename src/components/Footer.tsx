@@ -131,7 +131,7 @@ export default function Footer() {
           className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs"
           style={{ borderColor: '#9A9A9A22', color: '#9A9A9A' }}
         >
-          <p>© {year} The Insight Hive. Omnicom Group Affiliate. All rights reserved.</p>
+          <p>© {year} The Insight Hive. All rights reserved.</p>
           <NavLink to="/contact" className="hover:text-white transition-colors">
             Privacy Policy
           </NavLink>

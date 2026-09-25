@@ -107,7 +107,7 @@ export default function About() {
               <span className="font-light">Who</span> We Are
             </h1>
             <p className="text-xl leading-relaxed mb-6" style={{ color: '#9A9A9A' }}>
-              Founded by industry veterans with <strong style={{ color: '#F2F2F2' }}>44+ years combined experience</strong>, The Insight Hive is a full-service marketing agency and proud <strong style={{ color: '#F2F2F2' }}>Omnicom Group affiliate</strong> — future-facing across traditional and digital media.
+              Founded by industry veterans with <strong style={{ color: '#F2F2F2' }}>44+ years combined experience</strong>, The Insight Hive is a full-service marketing agency and proud <strong style={{ color: '#F2F2F2' }}></strong>future-facing across traditional and digital media.
             </p>
             <p style={{ color: '#9A9A9A' }} className="leading-relaxed">
               We connect Brand Strategy, Consumer Insight, Creative & Content, Integrated Media, Digital & Performance, and Data & Measurement under one roof. All-Rounders, by design.

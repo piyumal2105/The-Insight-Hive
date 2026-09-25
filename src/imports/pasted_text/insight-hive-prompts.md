@@ -10,8 +10,7 @@ Paste the Master Brand Prompt first, then each page prompt as its own frame.
 ## 0. MASTER BRAND PROMPT (paste first)
 
 ```
-Design a modern, premium website for "The Insight Hive" — a full-service marketing agency 
-(Omnicom Group affiliate, working alongside UM Worldwide and Initiative Worldwide) that 
+Design a modern, premium website for "The Insight Hive" — a full-service marketing agency working alongside UM Worldwide and Initiative Worldwide) that 
 connects Brand Strategy, Consumer Insight, Creative & Content, Integrated Media, Digital & 
 Performance, and Data & Measurement under one roof. Positioning line: "All-Rounders."
 
