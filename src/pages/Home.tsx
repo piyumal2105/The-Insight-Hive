@@ -284,8 +284,8 @@ export default function Home() {
                 to="/our-work"
                 onMouseMove={heroSeeWork.onMouseMove}
                 onMouseLeave={heroSeeWork.onMouseLeave}
-                style={{ ...heroSeeWork.style, borderColor: '#1A1A1A', background: 'rgba(255,255,255,0.5)' }}
-                className="font-semibold px-8 py-4 rounded-full text-base border-2 transition-all hover:bg-[#1A1A1A] hover:text-[#EFEFEF]"
+                style={heroSeeWork.style}
+                className="see-work-btn font-semibold px-8 py-4 rounded-full text-base border-2 transition-colors"
               >
                 See Our Work
               </NavLink>
@@ -301,6 +301,22 @@ export default function Home() {
           }
           @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+          }
+          /*
+            "See Our Work" button colors live here (instead of inline style)
+            so :hover can actually override them. Inline style props always
+            beat Tailwind's hover: classes, which was why the hover state
+            (light text) was landing on the same light background and
+            becoming unreadable.
+          */
+          .see-work-btn {
+            color: #1A1A1A;
+            background: rgba(255,255,255,0.5);
+            border-color: #1A1A1A;
+          }
+          .see-work-btn:hover {
+            color: #EFEFEF;
+            background: #1A1A1A;
           }
         `}</style>
       </section>
