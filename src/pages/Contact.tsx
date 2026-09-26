@@ -1,10 +1,19 @@
 import { useState } from 'react';
 import Icon, { type IconName } from '../components/Icon';
 
-const socialLinks: Record<string, string> = {
-  linkedin: 'https://lk.linkedin.com/company/the-insight-hive',
-  facebook: 'https://www.facebook.com/p/The-Insight-Hive-100094602075925/',
-  instagram: 'https://www.instagram.com/dinsighthive/',
+const socialLinks: Record<string, { href: string; background: string }> = {
+  linkedin: {
+    href: 'https://lk.linkedin.com/company/the-insight-hive',
+    background: '#0A66C2',
+  },
+  facebook: {
+    href: 'https://www.facebook.com/p/The-Insight-Hive-100094602075925/',
+    background: '#1877F2',
+  },
+  instagram: {
+    href: 'https://www.instagram.com/dinsighthive/',
+    background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)',
+  },
 };
 
 export default function Contact() {
@@ -53,16 +62,16 @@ export default function Contact() {
               <div className="mt-12">
                 <h3 className="font-bold text-sm tracking-widest mb-6" style={{ color: '#9A9A9A' }}>FOLLOW US</h3>
                 <div className="flex gap-4">
-                  {([['linkedin', 'LinkedIn'], ['facebook', 'Facebook'], ['instagram', 'Instagram']] as [IconName, string][]).map(([icon, name]) => (
+                  {([['linkedin', 'LinkedIn'], ['instagram', 'Instagram'], ['facebook', 'Facebook']] as [IconName, string][]).map(([icon, name]) => (
                     <a
                       key={name}
-                      href={socialLinks[icon]}
+                      href={socialLinks[icon].href}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={name}
                       className="group flex items-center gap-2 cursor-pointer"
                     >
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all group-hover:scale-110" style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)', color: '#fff' }}><Icon name={icon} size={19} /></div>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all group-hover:scale-110" style={{ background: socialLinks[icon].background, color: '#fff' }}><Icon name={icon} size={19} /></div>
                       <span className="text-sm font-medium" style={{ color: '#9A9A9A' }}>{name}</span>
                     </a>
                   ))}
@@ -146,7 +155,7 @@ export default function Contact() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
     </>
   );
 }

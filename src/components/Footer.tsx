@@ -2,21 +2,24 @@ import { NavLink } from 'react-router';
 import logo from '../assets/logo.png';
 import Icon, { type IconName } from '../components/Icon';
 
-const socials: { label: string; href: string; icon: IconName }[] = [
+const socials: { label: string; href: string; icon: IconName; background: string }[] = [
   {
     label: 'LinkedIn',
     href: 'https://lk.linkedin.com/company/the-insight-hive',
     icon: 'linkedin',
-  },
-  {
-    label: 'Facebook',
-    href: 'https://www.facebook.com/p/The-Insight-Hive-100094602075925/',
-    icon: 'facebook',
+    background: '#0A66C2',
   },
   {
     label: 'Instagram',
     href: 'https://www.instagram.com/dinsighthive/',
     icon: 'instagram',
+    background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)',
+  },
+  {
+    label: 'Facebook',
+    href: 'https://www.facebook.com/p/The-Insight-Hive-100094602075925/',
+    icon: 'facebook',
+    background: '#1877F2',
   },
 ];
 
@@ -92,7 +95,7 @@ export default function Footer() {
                   aria-label={s.label}
                   className="w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110"
                   style={{
-                    background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)',
+                    background: s.background,
                     color: '#fff',
                   }}
                 >
@@ -114,6 +117,6 @@ export default function Footer() {
           </NavLink>
         </div>
       </div>
-    </footer>
+    </footer >
   );
 }
