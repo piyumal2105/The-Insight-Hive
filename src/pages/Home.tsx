@@ -232,8 +232,10 @@ export default function Home() {
 
   return (
     <>
-      {/* Hero — fills the full screen; the nav floats over the top of it */}
-      <section className="relative overflow-hidden" style={{ background: '#EFEFEF', minHeight: '100vh' }}>
+      {/* Hero — fills the full screen; the nav floats over the top of it.
+          id="home-hero" lets Bee.tsx know where this section is on screen,
+          so its click-to-chat popup only ever appears here. */}
+      <section id="home-hero" className="relative overflow-hidden" style={{ background: '#EFEFEF', minHeight: '100vh' }}>
         <HiveBackground />
         <div className="absolute inset-0 pointer-events-none">
           <div style={{ position: 'absolute', top: -120, right: -120, width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(146,39,143,0.05) 0%, transparent 70%)' }} />
@@ -345,13 +347,13 @@ export default function Home() {
               <div
                 key={`${c.name}-${i}`}
                 className="flex-shrink-0 flex items-center justify-center"
-                style={{ width: 148, height: 64 }}
+                style={{ width: 200, height: 88 }}
                 title={c.name}
               >
                 <img
                   src={c.logo}
                   alt={c.name}
-                  className="max-h-10 md:max-h-12 w-auto max-w-[120px] object-contain transition-transform duration-300 hover:scale-110"
+                  className="max-h-14 md:max-h-16 w-auto max-w-[160px] object-contain transition-transform duration-300 hover:scale-110"
                 />
               </div>
             ))}

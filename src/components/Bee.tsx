@@ -1,4 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router';
+
+const HIVE_MESSAGES = [
+  'Welcome to the Hive!',
+  "We're The Insight Hive — the all-rounders of marketing.",
+  'Strategy, Creative, Media, Digital & Data, all under one roof.',
+  "Ready to make some buzz? Let's talk!",
+];
+
+const MESSAGE_DURATION_MS = 2800;
+const POPUP_ANCHORS_WIDE = [
+  { xPct: 0.8, yPct: 0.22 },
+  { xPct: 0.88, yPct: 0.5 },
+  { xPct: 0.76, yPct: 0.78 },
+  { xPct: 0.85, yPct: 0.35 }, // moved off dead-center so it doesn't cover the headline/paragraph
+];
+const POPUP_ANCHORS_NARROW = [
+  { xPct: 0.5, yPct: 0.55 },
+  { xPct: 0.5, yPct: 0.65 },
+  { xPct: 0.5, yPct: 0.75 },
+  { xPct: 0.5, yPct: 0.85 }, // pushed below the text column instead of on top of it
+];
+
+/** Every card is this exact size, whatever the message's length. */
+const POPUP_WIDTH = 280;
+const POPUP_HEIGHT = 108;
+const BRAND_GRADIENT = 'linear-gradient(135deg, #92278F 0%, #C2436B 50%, #F7941F 100%)';
+
+/** The Home page's hero <section> must carry this id — the bee only reacts
+ *  to clicks while it is visually inside it, and the message card is positioned
+ *  relative to this section (never inside/attached to the bee itself). */
+const HERO_SECTION_ID = 'home-hero';
 
 function BeeSVG({ wingPhase, speed }: { wingPhase: number; speed: number }) {
   const flapSpeedMul = 1 + Math.min(speed / 3, 1.5);
@@ -98,13 +130,114 @@ function lerpAngle(a: number, b: number, t: number) {
   return a + diff * t;
 }
 
+/** A standalone square message card — same fixed size for every message, a
+ *  light, easy-on-the-eye background, and a slow, gentle fade-out.
+ *  Completely independent of the bee's position. */
+function HiveMessagePopup({
+  message,
+  entered,
+  left,
+  top,
+}: {
+  message: string;
+  entered: boolean;
+  left: number;
+  top: number;
+}) {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        left,
+        top,
+        width: POPUP_WIDTH,
+        height: POPUP_HEIGHT,
+        transform: `translate(-50%, -50%) translateY(${entered ? '0px' : '20px'}) scale(${entered ? 1 : 0.45})`,
+        opacity: entered ? 1 : 0,
+        filter: `blur(${entered ? 0 : 6}px)`,
+        transition: entered
+          ? 'opacity 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease'
+          : 'opacity 1.3s ease, transform 1.3s ease, filter 1.3s ease',
+        pointerEvents: 'none',
+        zIndex: 9998,
+      }}
+    >
+      {/* soft, light glow bloom behind the card — subtle, not a heavy color blob */}
+      <div
+        className="hive-popup-glow"
+        style={{
+          position: 'absolute',
+          inset: -16,
+          borderRadius: 28,
+          background: BRAND_GRADIENT,
+          filter: 'blur(20px)',
+          opacity: 0.28,
+        }}
+      />
+
+      {/* the card itself — a light, white-based gradient tinted with the
+          brand colors, kept easy on the eye against the colorful glow */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxSizing: 'border-box',
+          padding: '14px 36px',
+          borderRadius: 22,
+          background: 'linear-gradient(135deg, #ffffff 0%, #fbe7f3 45%, #fef1dd 100%)',
+          boxShadow: '0 10px 28px rgba(146,39,143,0.18), 0 2px 6px rgba(0,0,0,0.06)',
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            fontWeight: 800,
+            fontSize: 14.5,
+            lineHeight: 1.38,
+            textAlign: 'center',
+            background: BRAND_GRADIENT,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          {message}
+        </p>
+      </div>
+
+      <style>{`
+        @keyframes hivePopupPulse {
+          0%, 100% { opacity: 0.22; transform: scale(1); }
+          50% { opacity: 0.38; transform: scale(1.04); }
+        }
+        .hive-popup-glow {
+          animation: hivePopupPulse 2.4s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function Bee() {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
   const [pos, setPos] = useState<BeePos>({ x: -100, y: -100 });
   const [wingPhase, setWingPhase] = useState(0);
   const [renderRotation, setRenderRotation] = useState(0);
   const [bob, setBob] = useState(0);
   const [speedNow, setSpeedNow] = useState(0);
   const [visible, setVisible] = useState(false);
+
+  // Hero-section awareness + popup state (popup is fully decoupled from the bee)
+  const [heroRect, setHeroRect] = useState<DOMRect | null>(null);
+  const [popupMounted, setPopupMounted] = useState(false);
+  const [popupEntered, setPopupEntered] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const animRef = useRef<number>(0);
   const wingRef = useRef<number>(0);
@@ -117,6 +250,11 @@ export default function Bee() {
   const angleRef = useRef(0);
   const wobbleSeedRef = useRef(Math.random() * 1000);
   const pausedUntilRef = useRef(0);
+
+  // Which message the *next* click will show (loops back to 0 after the last)
+  const nextIndexRef = useRef(0);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const unmountTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -144,7 +282,9 @@ export default function Bee() {
 
   // Smooth physics-based flight: acceleration toward target, gentle sine-wave
   // wobble perpendicular to travel direction (real bees don't fly in straight lines),
-  // eased rotation, and a pause-then-retarget behaviour once it arrives.
+  // eased rotation, and a pause-then-retarget behaviour once it arrives. This
+  // keeps running exactly the same whether or not the message popup is open —
+  // the bee never stops flying for it.
   useEffect(() => {
     if (!visible) return;
 
@@ -219,23 +359,120 @@ export default function Bee() {
     return () => cancelAnimationFrame(animRef.current);
   }, [visible]);
 
+  // Track the home page hero section's on-screen bounds. Only relevant on
+  // the home page — elsewhere the bee still flies, it just can't be clicked,
+  // and any open popup is force-closed (see effect below).
+  useEffect(() => {
+    if (!isHomePage) {
+      setHeroRect(null);
+      return;
+    }
+    let raf = 0;
+    const update = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = document.getElementById(HERO_SECTION_ID);
+        setHeroRect(el ? el.getBoundingClientRect() : null);
+      });
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [isHomePage]);
+
+  // Whether the bee itself is currently flying over the hero section —
+  // this only gates whether a click on it does anything.
+  const inHero =
+    isHomePage && !!heroRect && pos.y >= heroRect.top && pos.y <= heroRect.bottom;
+
+  function closePopup() {
+    clearTimeout(closeTimerRef.current);
+    setPopupEntered(false); // triggers the slow fade-out transition
+    clearTimeout(unmountTimerRef.current);
+    unmountTimerRef.current = setTimeout(() => setPopupMounted(false), 1350);
+  }
+
+  function handleBeeClick() {
+    if (!inHero || popupMounted) return; // one at a time — wait for it to disappear first
+
+    const idx = nextIndexRef.current;
+    nextIndexRef.current = (idx + 1) % HIVE_MESSAGES.length;
+
+    setActiveIndex(idx);
+    setPopupMounted(true);
+    // double rAF: let the "closed" state paint first, then flip to "entered"
+    // on the next frame so the CSS transition actually animates in.
+    requestAnimationFrame(() => requestAnimationFrame(() => setPopupEntered(true)));
+
+    clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(closePopup, MESSAGE_DURATION_MS);
+  }
+
+  // Leaving the home page mid-message closes the popup immediately.
+  useEffect(() => {
+    if (!isHomePage && popupMounted) {
+      closePopup();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHomePage]);
+
+  useEffect(
+    () => () => {
+      clearTimeout(closeTimerRef.current);
+      clearTimeout(unmountTimerRef.current);
+    },
+    []
+  );
+
   if (!visible) return null;
 
   const facingLeft = renderRotation > 90 || renderRotation < -90;
 
+  // Fixed anchor point for the message card — a different spot per message,
+  // independent of the bee — sitting inside the hero section.
+  const isNarrow = typeof window !== 'undefined' && window.innerWidth < 768;
+  const anchorSet = isNarrow ? POPUP_ANCHORS_NARROW : POPUP_ANCHORS_WIDE;
+  const anchorPct = anchorSet[activeIndex % anchorSet.length];
+  const popupAnchor = heroRect
+    ? { left: heroRect.left + heroRect.width * anchorPct.xPct, top: heroRect.top + heroRect.height * anchorPct.yPct }
+    : null;
+
   return (
-    <div
-      style={{
-        position: 'fixed',
-        left: pos.x - 30,
-        top: pos.y - 26 + bob,
-        zIndex: 9999,
-        pointerEvents: 'none',
-        transform: `rotate(${facingLeft ? 180 : 0}deg) rotate(${Math.max(-14, Math.min(14, (facingLeft ? -1 : 1) * (renderRotation - (facingLeft ? 180 : 0)) * 0.12))}deg)`,
-        transition: 'transform 0.25s ease-out',
-      }}
-    >
-      <BeeSVG wingPhase={wingPhase} speed={speedNow} />
-    </div>
+    <>
+      {popupMounted && popupAnchor && (
+        <HiveMessagePopup
+          message={HIVE_MESSAGES[activeIndex]}
+          entered={popupEntered}
+          left={popupAnchor.left}
+          top={popupAnchor.top}
+        />
+      )}
+      <div
+        style={{
+          position: 'fixed',
+          left: pos.x - 30,
+          top: pos.y - 26 + bob,
+          zIndex: 9999,
+          pointerEvents: 'none',
+        }}
+      >
+        <div
+          onClick={handleBeeClick}
+          style={{
+            pointerEvents: inHero ? 'auto' : 'none',
+            cursor: inHero ? 'pointer' : 'default',
+            transform: `rotate(${facingLeft ? 180 : 0}deg) rotate(${Math.max(-14, Math.min(14, (facingLeft ? -1 : 1) * (renderRotation - (facingLeft ? 180 : 0)) * 0.12))}deg)`,
+            transition: 'transform 0.25s ease-out',
+          }}
+        >
+          <BeeSVG wingPhase={wingPhase} speed={speedNow} />
+        </div>
+      </div>
+    </>
   );
 }
