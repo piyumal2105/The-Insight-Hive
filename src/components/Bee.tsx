@@ -9,28 +9,17 @@ const HIVE_MESSAGES = [
 ];
 
 const MESSAGE_DURATION_MS = 2800;
-const POPUP_ANCHORS_WIDE = [
-  { xPct: 0.8, yPct: 0.22 },
-  { xPct: 0.88, yPct: 0.5 },
-  { xPct: 0.76, yPct: 0.78 },
-  { xPct: 0.85, yPct: 0.35 }, // moved off dead-center so it doesn't cover the headline/paragraph
-];
-const POPUP_ANCHORS_NARROW = [
-  { xPct: 0.5, yPct: 0.55 },
-  { xPct: 0.5, yPct: 0.65 },
-  { xPct: 0.5, yPct: 0.75 },
-  { xPct: 0.5, yPct: 0.85 }, // pushed below the text column instead of on top of it
-];
 
 /** Every card is this exact size, whatever the message's length. */
 const POPUP_WIDTH = 280;
 const POPUP_HEIGHT = 108;
 const BRAND_GRADIENT = 'linear-gradient(135deg, #92278F 0%, #C2436B 50%, #F7941F 100%)';
 
-/** The Home page's hero <section> must carry this id — the bee only reacts
- *  to clicks while it is visually inside it, and the message card is positioned
- *  relative to this section (never inside/attached to the bee itself). */
-const HERO_SECTION_ID = 'home-hero';
+/** How far from the bee's center the popup sits, and the safety margin
+ *  kept from the viewport edges so the card is never clipped. */
+const POPUP_OFFSET_X = 170;
+const POPUP_OFFSET_Y = 80;
+const VIEWPORT_MARGIN = 16;
 
 function BeeSVG({ wingPhase, speed }: { wingPhase: number; speed: number }) {
   const flapSpeedMul = 1 + Math.min(speed / 3, 1.5);
@@ -57,7 +46,6 @@ function BeeSVG({ wingPhase, speed }: { wingPhase: number; speed: number }) {
         </linearGradient>
       </defs>
 
-      {/* Back wing pair (behind body, larger flap) */}
       <g style={{ transformOrigin: '22px 18px', transform: `rotate(${wingTilt}deg)` }}>
         <ellipse cx="14" cy={17 - wingFlap * 0.5} rx="12" ry="6.5" fill="url(#wingSheen)" stroke="rgba(150,190,230,0.6)" strokeWidth="0.4" opacity={wingOpacity} />
       </g>
@@ -65,7 +53,6 @@ function BeeSVG({ wingPhase, speed }: { wingPhase: number; speed: number }) {
         <ellipse cx="46" cy={17 - wingFlap * 0.5} rx="12" ry="6.5" fill="url(#wingSheen)" stroke="rgba(150,190,230,0.6)" strokeWidth="0.4" opacity={wingOpacity} />
       </g>
 
-      {/* Front wing pair (smaller, flaps opposite phase slightly) */}
       <g style={{ transformOrigin: '20px 22px', transform: `rotate(${wingTilt * 1.4}deg)` }}>
         <ellipse cx="16" cy={23 - wingFlap * 0.35} rx="8.5" ry="4.5" fill="url(#wingSheen)" stroke="rgba(150,190,230,0.5)" strokeWidth="0.4" opacity={wingOpacity * 0.9} />
       </g>
@@ -73,26 +60,20 @@ function BeeSVG({ wingPhase, speed }: { wingPhase: number; speed: number }) {
         <ellipse cx="44" cy={23 - wingFlap * 0.35} rx="8.5" ry="4.5" fill="url(#wingSheen)" stroke="rgba(150,190,230,0.5)" strokeWidth="0.4" opacity={wingOpacity * 0.9} />
       </g>
 
-      {/* Abdomen (striped, tapered) */}
       <path d="M30 26 C 40 26 46 33 44 40 C 42 47 34 50 30 50 C 26 50 18 47 16 40 C 14 33 20 26 30 26 Z" fill="url(#bodyShade)" />
       <path d="M18 33 C 22 31 38 31 42 33 C 43 35.5 43 35.5 42 38 C 38 36.5 22 36.5 18 38 C 17 35.5 17 35.5 18 33 Z" fill="#F0A824" />
       <path d="M17.5 40 C 21 38.7 39 38.7 42.5 40 C 42 42.3 42 42.3 41 44.3 C 37 43 23 43 19 44.3 C 18 42.3 18 42.3 17.5 40 Z" fill="#F0A824" />
       <path d="M20 45.5 C 23.5 44.6 36.5 44.6 40 45.5 C 38.7 47.4 38.7 47.4 36.8 48.7 C 32 47.7 28 47.7 23.2 48.7 C 21.3 47.4 21.3 47.4 20 45.5 Z" fill="#F0A824" opacity="0.9" />
-      {/* Abdomen fuzzy highlight */}
       <ellipse cx="26" cy="29" rx="5" ry="2.5" fill="rgba(255,255,255,0.18)" />
 
-      {/* Thorax (fuzzy, brand-tinted) */}
       <ellipse cx="30" cy="23" rx="9.5" ry="8.5" fill="#1E1300" />
       <ellipse cx="30" cy="21.5" rx="8" ry="6.5" fill="url(#beeGrad)" opacity="0.4" />
-      {/* Fuzz texture dots */}
       <circle cx="25" cy="19" r="0.7" fill="rgba(255,255,255,0.35)" />
       <circle cx="34" cy="18" r="0.6" fill="rgba(255,255,255,0.3)" />
       <circle cx="30" cy="16" r="0.6" fill="rgba(255,255,255,0.35)" />
       <circle cx="27" cy="24" r="0.5" fill="rgba(255,255,255,0.25)" />
 
-      {/* Head */}
       <circle cx="30" cy="13" r="6.2" fill="#150D00" />
-      {/* Compound eyes */}
       <ellipse cx="26" cy="12.3" rx="2.6" ry="3.1" fill="#241505" />
       <ellipse cx="34" cy="12.3" rx="2.6" ry="3.1" fill="#241505" />
       <ellipse cx="26" cy="11.4" rx="1.5" ry="1.7" fill="rgba(255,255,255,0.4)" />
@@ -100,13 +81,11 @@ function BeeSVG({ wingPhase, speed }: { wingPhase: number; speed: number }) {
       <circle cx="26.5" cy="10.9" r="0.5" fill="rgba(255,255,255,0.85)" />
       <circle cx="34.5" cy="10.9" r="0.5" fill="rgba(255,255,255,0.85)" />
 
-      {/* Antennae */}
       <path d="M27 8 Q23 3 19 1" stroke="#150D00" strokeWidth="1.1" strokeLinecap="round" fill="none" />
       <circle cx="19" cy="1" r="1.3" fill="#E8A020" />
       <path d="M33 8 Q37 3 41 1" stroke="#150D00" strokeWidth="1.1" strokeLinecap="round" fill="none" />
       <circle cx="41" cy="1" r="1.3" fill="#E8A020" />
 
-      {/* Legs (trailing, slight sway) */}
       <path d="M22 28 Q15 30 10 33" stroke="#1E1300" strokeWidth="1" strokeLinecap="round" opacity="0.75" fill="none" />
       <path d="M23 33 Q15 34 9 38" stroke="#1E1300" strokeWidth="1" strokeLinecap="round" opacity="0.75" fill="none" />
       <path d="M38 28 Q45 30 50 33" stroke="#1E1300" strokeWidth="1" strokeLinecap="round" opacity="0.75" fill="none" />
@@ -130,9 +109,38 @@ function lerpAngle(a: number, b: number, t: number) {
   return a + diff * t;
 }
 
+/** Places the popup near the bee's position: picks whichever side (left/right)
+ *  has more room, offsets slightly upward/downward so it doesn't sit right on
+ *  top of the bee, then clamps everything so the card always stays fully
+ *  inside the viewport. */
+function computePopupAnchor(beePos: BeePos): { left: number; top: number } {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const placeRight = beePos.x < vw / 2;
+  const rawX = placeRight ? beePos.x + POPUP_OFFSET_X : beePos.x - POPUP_OFFSET_X;
+
+  const placeBelow = beePos.y < vh / 2;
+  const rawY = placeBelow ? beePos.y + POPUP_OFFSET_Y : beePos.y - POPUP_OFFSET_Y;
+
+  const halfW = POPUP_WIDTH / 2;
+  const halfH = POPUP_HEIGHT / 2;
+
+  const left = Math.min(
+    Math.max(rawX, halfW + VIEWPORT_MARGIN),
+    vw - halfW - VIEWPORT_MARGIN
+  );
+  const top = Math.min(
+    Math.max(rawY, halfH + VIEWPORT_MARGIN),
+    vh - halfH - VIEWPORT_MARGIN
+  );
+
+  return { left, top };
+}
+
 /** A standalone square message card — same fixed size for every message, a
  *  light, easy-on-the-eye background, and a slow, gentle fade-out.
- *  Completely independent of the bee's position. */
+ *  Positioned near the bee at the moment it was clicked. */
 function HiveMessagePopup({
   message,
   entered,
@@ -162,7 +170,6 @@ function HiveMessagePopup({
         zIndex: 9998,
       }}
     >
-      {/* soft, light glow bloom behind the card — subtle, not a heavy color blob */}
       <div
         className="hive-popup-glow"
         style={{
@@ -175,8 +182,6 @@ function HiveMessagePopup({
         }}
       />
 
-      {/* the card itself — a light, white-based gradient tinted with the
-          brand colors, kept easy on the eye against the colorful glow */}
       <div
         style={{
           position: 'relative',
@@ -233,17 +238,17 @@ export default function Bee() {
   const [speedNow, setSpeedNow] = useState(0);
   const [visible, setVisible] = useState(false);
 
-  // Hero-section awareness + popup state (popup is fully decoupled from the bee)
-  const [heroRect, setHeroRect] = useState<DOMRect | null>(null);
+  // Popup state — position is captured (near the bee) at click time and held
+  // fixed for the duration of the message, so it doesn't chase the bee around.
   const [popupMounted, setPopupMounted] = useState(false);
   const [popupEntered, setPopupEntered] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [popupAnchor, setPopupAnchor] = useState<{ left: number; top: number } | null>(null);
 
   const animRef = useRef<number>(0);
   const wingRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
 
-  // Physics state kept in refs so the animation loop reads fresh values
   const posRef = useRef<BeePos>({ x: 0, y: 0 });
   const velRef = useRef<BeePos>({ x: 0, y: 0 });
   const targetRef = useRef<BeePos>({ x: 0, y: 0 });
@@ -251,7 +256,6 @@ export default function Bee() {
   const wobbleSeedRef = useRef(Math.random() * 1000);
   const pausedUntilRef = useRef(0);
 
-  // Which message the *next* click will show (loops back to 0 after the last)
   const nextIndexRef = useRef(0);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const unmountTimerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -268,7 +272,6 @@ export default function Bee() {
     return () => clearTimeout(t);
   }, []);
 
-  // Wing flutter — fast, continuous, independent of flight loop
   useEffect(() => {
     let phase = 0;
     const flutter = () => {
@@ -280,21 +283,16 @@ export default function Bee() {
     return () => cancelAnimationFrame(wingRef.current);
   }, []);
 
-  // Smooth physics-based flight: acceleration toward target, gentle sine-wave
-  // wobble perpendicular to travel direction (real bees don't fly in straight lines),
-  // eased rotation, and a pause-then-retarget behaviour once it arrives. This
-  // keeps running exactly the same whether or not the message popup is open —
-  // the bee never stops flying for it.
   useEffect(() => {
     if (!visible) return;
 
-    const accel = 0.012;      // how eagerly it steers toward target
-    const damping = 0.965;    // velocity decay -> smooth deceleration, no jitter
+    const accel = 0.012;
+    const damping = 0.965;
     const maxSpeed = 2.6;
 
     const step = (time: number) => {
       if (!lastTimeRef.current) lastTimeRef.current = time;
-      const dt = Math.min(time - lastTimeRef.current, 48); // clamp big jumps (tab switch etc)
+      const dt = Math.min(time - lastTimeRef.current, 48);
       lastTimeRef.current = time;
 
       if (time < pausedUntilRef.current) {
@@ -310,7 +308,6 @@ export default function Bee() {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist < 6) {
-        // Arrived: hover-pause, then choose a new destination
         pausedUntilRef.current = time + 1800 + Math.random() * 2600;
         const newTgt = randomPos();
         targetRef.current = newTgt;
@@ -318,7 +315,6 @@ export default function Bee() {
         return;
       }
 
-      // Steering: accelerate velocity toward target, then damp (creates natural ease-in/out)
       const nx = dx / dist;
       const ny = dy / dist;
       velRef.current.x += nx * accel * dt;
@@ -332,7 +328,6 @@ export default function Bee() {
         velRef.current.y = (velRef.current.y / vSpeed) * maxSpeed;
       }
 
-      // Perpendicular sine wobble for a meandering, organic flight path
       const travelAngle = Math.atan2(velRef.current.y, velRef.current.x);
       const wobble = Math.sin(time / 220 + wobbleSeedRef.current) * 0.5;
       const perpX = Math.cos(travelAngle + Math.PI / 2) * wobble;
@@ -359,50 +354,24 @@ export default function Bee() {
     return () => cancelAnimationFrame(animRef.current);
   }, [visible]);
 
-  // Track the home page hero section's on-screen bounds. Only relevant on
-  // the home page — elsewhere the bee still flies, it just can't be clicked,
-  // and any open popup is force-closed (see effect below).
-  useEffect(() => {
-    if (!isHomePage) {
-      setHeroRect(null);
-      return;
-    }
-    let raf = 0;
-    const update = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const el = document.getElementById(HERO_SECTION_ID);
-        setHeroRect(el ? el.getBoundingClientRect() : null);
-      });
-    };
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, [isHomePage]);
-
-  // Whether the bee itself is currently flying over the hero section —
-  // this only gates whether a click on it does anything.
-  const inHero =
-    isHomePage && !!heroRect && pos.y >= heroRect.top && pos.y <= heroRect.bottom;
+  // The bee (and its popup) can be triggered anywhere on the home page.
+  const canClick = isHomePage;
 
   function closePopup() {
     clearTimeout(closeTimerRef.current);
-    setPopupEntered(false); // triggers the slow fade-out transition
+    setPopupEntered(false);
     clearTimeout(unmountTimerRef.current);
     unmountTimerRef.current = setTimeout(() => setPopupMounted(false), 1350);
   }
 
   function handleBeeClick() {
-    if (!inHero || popupMounted) return; // one at a time — wait for it to disappear first
+    if (!canClick || popupMounted) return;
 
     const idx = nextIndexRef.current;
     nextIndexRef.current = (idx + 1) % HIVE_MESSAGES.length;
 
+    // Anchor the popup to wherever the bee is right now.
+    setPopupAnchor(computePopupAnchor(posRef.current));
     setActiveIndex(idx);
     setPopupMounted(true);
     // double rAF: let the "closed" state paint first, then flip to "entered"
@@ -433,15 +402,6 @@ export default function Bee() {
 
   const facingLeft = renderRotation > 90 || renderRotation < -90;
 
-  // Fixed anchor point for the message card — a different spot per message,
-  // independent of the bee — sitting inside the hero section.
-  const isNarrow = typeof window !== 'undefined' && window.innerWidth < 768;
-  const anchorSet = isNarrow ? POPUP_ANCHORS_NARROW : POPUP_ANCHORS_WIDE;
-  const anchorPct = anchorSet[activeIndex % anchorSet.length];
-  const popupAnchor = heroRect
-    ? { left: heroRect.left + heroRect.width * anchorPct.xPct, top: heroRect.top + heroRect.height * anchorPct.yPct }
-    : null;
-
   return (
     <>
       {popupMounted && popupAnchor && (
@@ -464,8 +424,8 @@ export default function Bee() {
         <div
           onClick={handleBeeClick}
           style={{
-            pointerEvents: inHero ? 'auto' : 'none',
-            cursor: inHero ? 'pointer' : 'default',
+            pointerEvents: canClick ? 'auto' : 'none',
+            cursor: canClick ? 'pointer' : 'default',
             transform: `rotate(${facingLeft ? 180 : 0}deg) rotate(${Math.max(-14, Math.min(14, (facingLeft ? -1 : 1) * (renderRotation - (facingLeft ? 180 : 0)) * 0.12))}deg)`,
             transition: 'transform 0.25s ease-out',
           }}
