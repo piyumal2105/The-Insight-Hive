@@ -429,7 +429,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Philosophy */}
+      {/* Philosophy — glassmorphic cards (frosted glass, soft glow border, subtle shine) */}
       <section className="py-24" style={{ background: '#EFEFEF' }}>
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="font-extrabold mb-16 text-center" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#1A1A1A' }}>
@@ -439,10 +439,8 @@ export default function Home() {
             {pillars.map((p, i) => (
               <div
                 key={i}
-                className="text-center p-10 rounded-2xl transition-all duration-700 hover:-translate-y-1 hover:shadow-lg"
+                className="philosophy-card text-center p-10 rounded-3xl relative overflow-hidden"
                 style={{
-                  background: '#fff',
-                  border: '1px solid rgba(26,26,26,0.07)',
                   opacity: pillarsVisible ? 1 : 0,
                   transform: pillarsVisible ? 'translateY(0)' : 'translateY(32px)',
                   transitionDelay: `${i * 150}ms`,
@@ -451,14 +449,75 @@ export default function Home() {
                 <img
                   src={p.image}
                   alt={p.title}
-                  className="mx-auto w-24 md:w-28 h-auto transition-transform duration-300 hover:scale-105"
+                  className="mx-auto w-24 md:w-28 h-auto relative z-10 transition-transform duration-300"
                 />
-                <h3 className="font-extrabold text-xl mt-6 mb-3" style={{ color: '#1A1A1A' }}>{p.title}</h3>
-                <p style={{ color: '#6B6B6B' }}>{p.desc}</p>
+                <h3 className="font-extrabold text-xl mt-6 mb-3 relative z-10" style={{ color: '#1A1A1A' }}>{p.title}</h3>
+                <p className="relative z-10" style={{ color: '#6B6B6B' }}>{p.desc}</p>
               </div>
             ))}
           </div>
         </div>
+
+        <style>{`
+          .philosophy-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.35));
+            border: 1px solid rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            box-shadow:
+              0 12px 40px rgba(146,39,143,0.12),
+              0 4px 16px rgba(26,26,26,0.08),
+              inset 0 1px 0 rgba(255,255,255,0.95),
+              inset 0 0 20px rgba(255,255,255,0.4),
+              0 0 0 1px rgba(255,255,255,0.3);
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                        opacity 0.6s ease,
+                        box-shadow 0.4s ease,
+                        border-color 0.4s ease;
+          }
+          .philosophy-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(115deg, transparent 15%, rgba(255,255,255,0.85) 42%, rgba(255,255,255,0.1) 62%, transparent 85%);
+            transform: translateX(-130%);
+            transition: transform 1s ease;
+            pointer-events: none;
+          }
+          .philosophy-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1.5px;
+            background: linear-gradient(135deg, #92278F, #C2436B, #F7941F);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.5;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+          }
+          .philosophy-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow:
+              0 20px 56px rgba(146,39,143,0.28),
+              0 8px 24px rgba(247,148,31,0.14),
+              inset 0 1px 0 rgba(255,255,255,1),
+              inset 0 0 28px rgba(255,255,255,0.5),
+              0 0 0 1px rgba(255,255,255,0.4);
+          }
+          .philosophy-card:hover::before {
+            transform: translateX(130%);
+          }
+          .philosophy-card:hover::after {
+            opacity: 1;
+          }
+          .philosophy-card:hover img {
+            transform: scale(1.1);
+            filter: drop-shadow(0 6px 14px rgba(247,148,31,0.35));
+          }
+        `}</style>
       </section>
 
       {/* Selected work */}
