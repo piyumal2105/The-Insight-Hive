@@ -3,8 +3,9 @@ import { useLocation } from 'react-router';
 
 const HIVE_MESSAGES = [
   'Welcome to the Hive!',
-  "We're The Insight Hive — the all-rounders of marketing.",
-  'Strategy, Creative, Media, Digital & Data, all under one roof.',
+  'I bring the buzz. You bring the brand.',
+  'We’re always busy making ideas fly.',
+  'Good ideas? I know where to find them.',
   "Ready to make some buzz? Let's talk!",
 ];
 
@@ -15,11 +16,14 @@ const POPUP_WIDTH = 280;
 const POPUP_HEIGHT = 108;
 const BRAND_GRADIENT = 'linear-gradient(135deg, #92278F 0%, #C2436B 50%, #F7941F 100%)';
 
-/** How far from the bee's center the popup sits, and the safety margin
- *  kept from the viewport edges so the card is never clipped. */
 const POPUP_OFFSET_X = 170;
 const POPUP_OFFSET_Y = 80;
 const VIEWPORT_MARGIN = 16;
+
+const HINT_FIRST_DELAY_MS = 1500;
+const HINT_VISIBLE_MS = 4200;
+const HINT_REPEAT_DELAY_MS = 13000;
+const HINT_MAX_APPEARANCES = 3;
 
 function BeeSVG({ wingPhase, speed }: { wingPhase: number; speed: number }) {
   const flapSpeedMul = 1 + Math.min(speed / 3, 1.5);
@@ -109,10 +113,6 @@ function lerpAngle(a: number, b: number, t: number) {
   return a + diff * t;
 }
 
-/** Places the popup near the bee's position: picks whichever side (left/right)
- *  has more room, offsets slightly upward/downward so it doesn't sit right on
- *  top of the bee, then clamps everything so the card always stays fully
- *  inside the viewport. */
 function computePopupAnchor(beePos: BeePos): { left: number; top: number } {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -227,6 +227,99 @@ function HiveMessagePopup({
   );
 }
 
+function BeeDiscoveryHint({ visible }: { visible: boolean }) {
+  return (
+    <>
+      {/* Bloom ring, centered on the bee icon */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 30,
+          top: 24,
+          width: 10,
+          height: 10,
+          transform: 'translate(-50%, -50%)',
+          borderRadius: '50%',
+          background: BRAND_GRADIENT,
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.4s ease',
+          pointerEvents: 'none',
+        }}
+        className={visible ? 'hive-bloom-ring' : undefined}
+      />
+
+      {/* Speech-bubble hint */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 30,
+          top: -14,
+          transform: `translate(-50%, -100%) translateY(${visible ? '0px' : '8px'}) scale(${visible ? 1 : 0.7})`,
+          opacity: visible ? 1 : 0,
+          transition: visible
+            ? 'opacity 0.35s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
+            : 'opacity 0.3s ease, transform 0.3s ease',
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap',
+        }}
+        className={visible ? 'hive-hint-bob' : undefined}
+      >
+        <div
+          style={{
+            position: 'relative',
+            padding: '7px 14px',
+            borderRadius: 14,
+            background: 'linear-gradient(135deg, #ffffff 0%, #fbe7f3 45%, #fef1dd 100%)',
+            boxShadow: '0 6px 18px rgba(146,39,143,0.22), 0 1px 4px rgba(0,0,0,0.08)',
+          }}
+        >
+          <span
+            style={{
+              fontSize: 12.5,
+              fontWeight: 800,
+              background: BRAND_GRADIENT,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Click me!
+          </span>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: -5,
+              left: '50%',
+              transform: 'translateX(-50%) rotate(45deg)',
+              width: 10,
+              height: 10,
+              background: '#fbe7f3',
+            }}
+          />
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes hiveBloomRing {
+          0% { box-shadow: 0 0 0 0 rgba(146,39,143,0.35); opacity: 0.9; }
+          70% { box-shadow: 0 0 0 20px rgba(146,39,143,0); opacity: 0; }
+          100% { box-shadow: 0 0 0 20px rgba(146,39,143,0); opacity: 0; }
+        }
+        .hive-bloom-ring {
+          animation: hiveBloomRing 1.8s ease-out infinite;
+        }
+        @keyframes hiveHintBob {
+          0%, 100% { margin-top: 0px; }
+          50% { margin-top: -4px; }
+        }
+        .hive-hint-bob {
+          animation: hiveHintBob 1.6s ease-in-out infinite;
+        }
+      `}</style>
+    </>
+  );
+}
+
 export default function Bee() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
@@ -238,12 +331,15 @@ export default function Bee() {
   const [speedNow, setSpeedNow] = useState(0);
   const [visible, setVisible] = useState(false);
 
-  // Popup state — position is captured (near the bee) at click time and held
-  // fixed for the duration of the message, so it doesn't chase the bee around.
   const [popupMounted, setPopupMounted] = useState(false);
   const [popupEntered, setPopupEntered] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [popupAnchor, setPopupAnchor] = useState<{ left: number; top: number } | null>(null);
+
+  const [discovered, setDiscovered] = useState(false);
+  const [hintVisible, setHintVisible] = useState(false);
+  const hintAppearancesRef = useRef(0);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const animRef = useRef<number>(0);
   const wingRef = useRef<number>(0);
@@ -354,8 +450,39 @@ export default function Bee() {
     return () => cancelAnimationFrame(animRef.current);
   }, [visible]);
 
-  // The bee (and its popup) can be triggered anywhere on the home page.
   const canClick = isHomePage;
+
+  useEffect(() => {
+    if (!visible || !canClick || discovered) {
+      setHintVisible(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const scheduleHint = (delay: number) => {
+      hintTimerRef.current = setTimeout(() => {
+        if (cancelled || discovered) return;
+        setHintVisible(true);
+        hintAppearancesRef.current += 1;
+        hintTimerRef.current = setTimeout(() => {
+          if (cancelled) return;
+          setHintVisible(false);
+          if (hintAppearancesRef.current < HINT_MAX_APPEARANCES) {
+            scheduleHint(HINT_REPEAT_DELAY_MS);
+          }
+        }, HINT_VISIBLE_MS);
+      }, delay);
+    };
+
+    scheduleHint(HINT_FIRST_DELAY_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(hintTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, canClick, discovered]);
 
   function closePopup() {
     clearTimeout(closeTimerRef.current);
@@ -367,6 +494,13 @@ export default function Bee() {
   function handleBeeClick() {
     if (!canClick || popupMounted) return;
 
+
+    if (!discovered) {
+      setDiscovered(true);
+      setHintVisible(false);
+      clearTimeout(hintTimerRef.current);
+    }
+
     const idx = nextIndexRef.current;
     nextIndexRef.current = (idx + 1) % HIVE_MESSAGES.length;
 
@@ -374,8 +508,7 @@ export default function Bee() {
     setPopupAnchor(computePopupAnchor(posRef.current));
     setActiveIndex(idx);
     setPopupMounted(true);
-    // double rAF: let the "closed" state paint first, then flip to "entered"
-    // on the next frame so the CSS transition actually animates in.
+
     requestAnimationFrame(() => requestAnimationFrame(() => setPopupEntered(true)));
 
     clearTimeout(closeTimerRef.current);
@@ -421,6 +554,7 @@ export default function Bee() {
           pointerEvents: 'none',
         }}
       >
+        {!discovered && canClick && <BeeDiscoveryHint visible={hintVisible} />}
         <div
           onClick={handleBeeClick}
           style={{
