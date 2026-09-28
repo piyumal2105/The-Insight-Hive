@@ -25,6 +25,15 @@ const HINT_VISIBLE_MS = 4200;
 const HINT_REPEAT_DELAY_MS = 13000;
 const HINT_MAX_APPEARANCES = 3;
 
+/* ---------- Map "perch" settings (Contact page) ---------- */
+
+/** The element on the Contact page whose centre is the red pin. */
+const MAP_ANCHOR_SELECTOR = '[data-bee-anchor="hive-map"]';
+/** Where the bee hovers relative to the pin tip (negative = above the pin). */
+const PERCH_OFFSET_Y = -40;
+const PERCH_MESSAGE = 'Yes, this is our Hive!';
+const PERCH_SUBMESSAGE = 'Come say hello — we’d love to meet you.';
+
 function BeeSVG({ wingPhase, speed }: { wingPhase: number; speed: number }) {
   const flapSpeedMul = 1 + Math.min(speed / 3, 1.5);
   const wingFlap = Math.sin(wingPhase * flapSpeedMul) * 10;
@@ -111,6 +120,20 @@ function randomPos(): BeePos {
 function lerpAngle(a: number, b: number, t: number) {
   let diff = ((b - a + 540) % 360) - 180;
   return a + diff * t;
+}
+
+/** Viewport position where the bee should hover over the map's red pin,
+ *  or null when the map isn't on the current page. The Google embed always
+ *  centres the pin in the iframe, so the iframe's centre is the pin tip. */
+function getPerchTarget(): BeePos | null {
+  const el = document.querySelector(MAP_ANCHOR_SELECTOR);
+  if (!el) return null;
+  const rect = el.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return null;
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2 + PERCH_OFFSET_Y,
+  };
 }
 
 function computePopupAnchor(beePos: BeePos): { left: number; top: number } {
@@ -320,6 +343,113 @@ function BeeDiscoveryHint({ visible }: { visible: boolean }) {
   );
 }
 
+/** Shown while the bee is hovering over the red map pin: a pulsing ripple
+ *  on the pin plus a "Yes, this is our Hive!" bubble above the bee. */
+function BeePerchBubble({ visible }: { visible: boolean }) {
+  return (
+    <>
+      {/* Ripple on the pin tip */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 30,
+          top: 26 - PERCH_OFFSET_Y,
+          width: 12,
+          height: 12,
+          transform: 'translate(-50%, -50%)',
+          borderRadius: '50%',
+          background: 'rgba(194,67,107,0.55)',
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.5s ease',
+          pointerEvents: 'none',
+        }}
+        className={visible ? 'hive-perch-ring' : undefined}
+      />
+
+      {/* Message bubble */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 30,
+          top: -12,
+          transform: `translate(-50%, -100%) translateY(${visible ? '0px' : '10px'}) scale(${visible ? 1 : 0.6})`,
+          transformOrigin: '50% 100%',
+          opacity: visible ? 1 : 0,
+          transition: visible
+            ? 'opacity 0.4s ease, transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)'
+            : 'opacity 0.3s ease, transform 0.3s ease',
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <div
+          className="hive-perch-glow"
+          style={{
+            position: 'absolute',
+            inset: -10,
+            borderRadius: 26,
+            background: BRAND_GRADIENT,
+            filter: 'blur(16px)',
+            opacity: 0.3,
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            padding: '12px 22px',
+            borderRadius: 18,
+            textAlign: 'center',
+            background: 'linear-gradient(135deg, #ffffff 0%, #fbe7f3 45%, #fef1dd 100%)',
+            boxShadow: '0 10px 28px rgba(146,39,143,0.22), 0 2px 6px rgba(0,0,0,0.08)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 800,
+              lineHeight: 1.3,
+              background: BRAND_GRADIENT,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            {PERCH_MESSAGE}
+          </div>
+          <div style={{ marginTop: 2, fontSize: 11.5, fontWeight: 600, color: '#8a6a86' }}>
+            {PERCH_SUBMESSAGE}
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: -6,
+              left: '50%',
+              transform: 'translateX(-50%) rotate(45deg)',
+              width: 12,
+              height: 12,
+              background: '#fdeee6',
+              borderRadius: 2,
+            }}
+          />
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes hivePerchRing {
+          0% { box-shadow: 0 0 0 0 rgba(194,67,107,0.45); }
+          80%, 100% { box-shadow: 0 0 0 26px rgba(194,67,107,0); }
+        }
+        .hive-perch-ring { animation: hivePerchRing 1.9s ease-out infinite; }
+        @keyframes hivePerchGlow {
+          0%, 100% { opacity: 0.22; }
+          50% { opacity: 0.4; }
+        }
+        .hive-perch-glow { animation: hivePerchGlow 2.4s ease-in-out infinite; }
+      `}</style>
+    </>
+  );
+}
+
 export default function Bee() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
@@ -340,6 +470,13 @@ export default function Bee() {
   const [hintVisible, setHintVisible] = useState(false);
   const hintAppearancesRef = useRef(0);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Map perch state: `perchActive` = bee is heading to / sitting on the pin,
+  // `perchArrived` = it has reached the pin and the bubble should show.
+  const [perchActive, setPerchActive] = useState(false);
+  const [perchArrived, setPerchArrived] = useState(false);
+  const perchModeRef = useRef(false);
+  const arrivedRef = useRef(false);
 
   const animRef = useRef<number>(0);
   const wingRef = useRef<number>(0);
@@ -391,6 +528,87 @@ export default function Bee() {
       const dt = Math.min(time - lastTimeRef.current, 48);
       lastTimeRef.current = time;
 
+      /* ---------- Map perch: fly to the red pin and hover there ---------- */
+      const pin = getPerchTarget();
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      const wasPerched = perchModeRef.current;
+
+      // Hysteresis: easier to stay perched than to start, so it never flickers.
+      let wantPerch = false;
+      if (pin) {
+        const lo = wasPerched ? 0.02 : 0.2;
+        const hi = wasPerched ? 0.98 : 0.85;
+        wantPerch = pin.y >= vh * lo && pin.y <= vh * hi && pin.x >= 0 && pin.x <= vw;
+      }
+
+      if (wantPerch !== wasPerched) {
+        perchModeRef.current = wantPerch;
+        setPerchActive(wantPerch);
+        if (wantPerch) {
+          pausedUntilRef.current = 0;
+        } else {
+          // Scrolled away from the map: hide bubble and go back to roaming.
+          arrivedRef.current = false;
+          setPerchArrived(false);
+          targetRef.current = randomPos();
+          pausedUntilRef.current = time + 400;
+        }
+      }
+
+      if (wantPerch && pin) {
+        const cur = posRef.current;
+        const dx = pin.x - cur.x;
+        const dy = pin.y - cur.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (!arrivedRef.current && dist < 10) {
+          arrivedRef.current = true;
+          setPerchArrived(true);
+        } else if (arrivedRef.current && dist > 140) {
+          arrivedRef.current = false;
+          setPerchArrived(false);
+        }
+
+        let newPos: BeePos;
+        let vSpeed = 0;
+
+        if (arrivedRef.current) {
+          // Locked on: stay glued to the pin even while the page scrolls.
+          newPos = { x: cur.x + dx * 0.4, y: cur.y + dy * 0.4 };
+          velRef.current = { x: 0, y: 0 };
+        } else {
+          // Smooth approach that slows down as it nears the pin.
+          const desired = Math.min(3.4, dist * 0.06);
+          const nx = dist > 0 ? dx / dist : 0;
+          const ny = dist > 0 ? dy / dist : 0;
+          velRef.current.x += (nx * desired - velRef.current.x) * 0.1;
+          velRef.current.y += (ny * desired - velRef.current.y) * 0.1;
+          vSpeed = Math.sqrt(velRef.current.x ** 2 + velRef.current.y ** 2);
+          newPos = {
+            x: cur.x + velRef.current.x * (dt / 16),
+            y: cur.y + velRef.current.y * (dt / 16),
+          };
+          const travelAngle = Math.atan2(velRef.current.y, velRef.current.x) * (180 / Math.PI);
+          angleRef.current = lerpAngle(angleRef.current, travelAngle, 0.08);
+        }
+
+        if (arrivedRef.current) {
+          // Face forward (upright) while hovering.
+          angleRef.current = lerpAngle(angleRef.current, 0, 0.1);
+        }
+
+        posRef.current = newPos;
+        setPos(newPos);
+        setRenderRotation(angleRef.current);
+        setBob(Math.sin(time / 350 + wobbleSeedRef.current) * (arrivedRef.current ? 3.5 : 2.5));
+        setSpeedNow(arrivedRef.current ? 0.9 : vSpeed);
+
+        animRef.current = requestAnimationFrame(step);
+        return;
+      }
+
+      /* ---------- Normal roaming ---------- */
       if (time < pausedUntilRef.current) {
         setSpeedNow((s) => s * 0.9);
         animRef.current = requestAnimationFrame(step);
@@ -494,7 +712,6 @@ export default function Bee() {
   function handleBeeClick() {
     if (!canClick || popupMounted) return;
 
-
     if (!discovered) {
       setDiscovered(true);
       setHintVisible(false);
@@ -555,6 +772,7 @@ export default function Bee() {
         }}
       >
         {!discovered && canClick && <BeeDiscoveryHint visible={hintVisible} />}
+        {perchActive && <BeePerchBubble visible={perchArrived} />}
         <div
           onClick={handleBeeClick}
           style={{

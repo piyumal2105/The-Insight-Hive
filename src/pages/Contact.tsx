@@ -8,6 +8,10 @@ const MAPS_SHARE_LINK = 'https://maps.app.goo.gl/K2owKrG6U6JtRj3y5';
 
 const OFFICE_COORDS = '';
 
+const GOOGLE_RATING = { score: '5.0', count: 3 };
+
+const HIDE_GOOGLE_CARD_PX = 140;
+
 const MAPS_QUERY = OFFICE_COORDS || `The Insight Hive, ${OFFICE_ADDRESS}`;
 const MAPS_EMBED_SRC = `https://maps.google.com/maps?q=${encodeURIComponent(MAPS_QUERY)}&z=17&output=embed`;
 const MAPS_DIRECTIONS = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(MAPS_QUERY)}`;
@@ -51,6 +55,8 @@ export default function Contact() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [mapActive, setMapActive] = useState(false);
+  // Changing this key remounts the iframe, which reloads the map at the office location.
+  const [mapKey, setMapKey] = useState(0);
   const [isOpen, setIsOpen] = useState(getOfficeStatus);
 
   useEffect(() => {
@@ -267,46 +273,82 @@ export default function Contact() {
               onMouseLeave={() => setMapActive(false)}
               onTouchStart={() => setMapActive(true)}
             >
-              {/* Map: dark by default, full colour on hover/touch */}
-              <iframe
-                title="The Insight Hive office location"
-                src={MAPS_EMBED_SRC}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-                className="w-full h-[380px] md:h-[560px] block border-0"
-                style={{
-                  filter: mapActive
-                    ? 'grayscale(0) invert(0) contrast(1)'
-                    : 'grayscale(1) invert(0.92) contrast(0.85) brightness(0.95)',
-                  transition: 'filter 0.7s ease',
-                }}
-              />
+              {/* Map area. The iframe is pushed up so Google's own place card is cropped out;
+                  our glass card below replaces it. data-bee-anchor lets the Bee find the red pin
+                  (the iframe's centre). */}
+              <div className="relative h-[380px] md:h-[560px] overflow-hidden">
+                <iframe
+                  key={mapKey}
+                  title="The Insight Hive office location"
+                  src={MAPS_EMBED_SRC}
+                  data-bee-anchor="hive-map"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                  className="absolute left-0 w-full block border-0"
+                  style={{
+                    top: -HIDE_GOOGLE_CARD_PX,
+                    height: `calc(100% + ${HIDE_GOOGLE_CARD_PX}px)`,
+                    filter: mapActive
+                      ? 'grayscale(0) invert(0) contrast(1)'
+                      : 'grayscale(1) invert(0.92) contrast(0.85) brightness(0.95)',
+                    transition: 'filter 0.7s ease',
+                  }}
+                />
 
-              {/* Brand tint that fades on hover */}
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(122,46,140,0.25), rgba(232,114,46,0.12))',
-                  mixBlendMode: 'soft-light',
-                  opacity: mapActive ? 0 : 1,
-                  transition: 'opacity 0.7s ease',
-                }}
-              />
+                {/* Brand tint that fades on hover */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(122,46,140,0.25), rgba(232,114,46,0.12))',
+                    mixBlendMode: 'soft-light',
+                    opacity: mapActive ? 0 : 1,
+                    transition: 'opacity 0.7s ease',
+                  }}
+                />
 
-              {/* Floating glass info card */}
+                {/* Recenter button: reloads the map back to the office location */}
+                <button
+                  type="button"
+                  onClick={() => setMapKey(k => k + 1)}
+                  aria-label="Recenter map to The Insight Hive"
+                  className="absolute top-4 right-4 md:top-6 md:right-6 z-10 group flex items-center gap-2.5 text-white font-semibold text-sm pl-2 pr-5 py-2 rounded-full cursor-pointer transition-transform hover:scale-[1.04] active:scale-95"
+                  style={{
+                    background: 'rgba(20,20,22,0.72)',
+                    backdropFilter: 'blur(18px) saturate(160%)',
+                    WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+                    border: '1px solid rgba(255,255,255,0.14)',
+                    boxShadow: '0 12px 28px -10px rgba(0,0,0,0.5)',
+                  }}
+                >
+                  <span
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-500 group-hover:rotate-90">
+                      <circle cx="12" cy="12" r="3" />
+                      <circle cx="12" cy="12" r="8" />
+                      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+                    </svg>
+                  </span>
+                  Recenter
+                </button>
+              </div>
+
+              {/* Single glass info card (replaces Google's place card). On mobile it sits under the map. */}
               <div
-                className="md:absolute md:top-8 md:left-8 md:w-[360px] p-6 md:rounded-2xl"
+                className="md:absolute md:top-6 md:left-6 md:w-[340px] p-5 md:rounded-3xl"
                 style={{
-                  background: 'rgba(26,26,26,0.78)',
-                  backdropFilter: 'blur(18px)',
-                  WebkitBackdropFilter: 'blur(18px)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(20,20,22,0.72)',
+                  backdropFilter: 'blur(22px) saturate(160%)',
+                  WebkitBackdropFilter: 'blur(22px) saturate(160%)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  boxShadow: '0 24px 48px -16px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08)',
                   color: '#F2F2F2',
                 }}
               >
-                <div className="flex items-center justify-between mb-5">
-                  <span className="text-xs font-semibold tracking-widest" style={{ color: '#9A9A9A' }}>THE INSIGHT HIVE HQ</span>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[11px] font-semibold tracking-[0.18em]" style={{ color: '#9A9A9A' }}>THE INSIGHT HIVE HQ</span>
                   <span
                     className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full"
                     style={{
@@ -322,35 +364,58 @@ export default function Contact() {
                   </span>
                 </div>
 
-                <p className="font-extrabold text-xl leading-snug mb-1">63 Fife Road</p>
-                <p className="text-sm mb-5" style={{ color: '#9A9A9A' }}>Colombo 5, Sri Lanka</p>
+                <p className="font-extrabold text-xl leading-snug mb-1">The Insight Hive (Pvt) Ltd</p>
+                <div className="flex items-center gap-1.5 text-sm mb-5" style={{ color: '#D0D0D0' }}>
+                  <span className="font-semibold">{GOOGLE_RATING.score}</span>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="#F5B84B" aria-hidden="true">
+                    <path d="M12 2.5l2.93 6.1 6.57.9-4.8 4.63 1.2 6.6L12 17.6l-5.9 3.13 1.2-6.6L2.5 9.5l6.57-.9L12 2.5z" />
+                  </svg>
+                  <span style={{ color: '#9A9A9A' }}>({GOOGLE_RATING.count} Google reviews)</span>
+                </div>
 
-                <div className="flex items-center gap-2 text-sm mb-6" style={{ color: '#D0D0D0' }}>
+                <div className="flex items-start gap-3 mb-4">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)' }}
+                  >
+                    <Icon name="pin" size={18} />
+                  </div>
+                  <div>
+                    <p className="font-bold leading-snug">63 Fife Road</p>
+                    <p className="text-sm" style={{ color: '#9A9A9A' }}>Colombo 5, Sri Lanka</p>
+                  </div>
+                </div>
+
+                <div
+                  className="flex items-center gap-2 text-sm px-3 py-2.5 rounded-xl mb-5"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: '#D0D0D0' }}
+                >
                   <Icon name="clock" size={16} />
                   <span>Mon – Fri · 9.30 AM – 5.30 PM</span>
                 </div>
 
-                <div className="flex flex-col gap-3">
+                <div className="flex gap-2">
                   <a
                     href={MAPS_DIRECTIONS}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex items-center justify-center gap-2 text-white font-bold text-sm py-3 rounded-full transition-transform hover:scale-[1.02]"
+                    className="group flex-1 flex items-center justify-center gap-2 text-white font-bold text-sm py-3 rounded-full transition-transform hover:scale-[1.02]"
                     style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)' }}
                   >
-                    Get Directions
+                    Directions
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-1">
                       <path d="M5 12h14M13 6l6 6-6 6" />
                     </svg>
                   </a>
+
                   <a
                     href={MAPS_SHARE_LINK}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 font-semibold text-sm py-3 rounded-full transition-colors hover:bg-white/10"
+                    className="flex-1 flex items-center justify-center gap-2 font-semibold text-sm py-3 rounded-full transition-colors hover:bg-white/10"
                     style={{ border: '1px solid rgba(255,255,255,0.18)', color: '#F2F2F2' }}
                   >
-                    Open in Google Maps
+                    Google Maps
                   </a>
                 </div>
               </div>
