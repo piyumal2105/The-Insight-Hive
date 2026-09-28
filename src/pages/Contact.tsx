@@ -1,5 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Icon, { type IconName } from '../components/Icon';
+
+const WEB3FORMS_ACCESS_KEY = '7e664838-1a32-4881-bc67-5caf4f381918';
+
+const OFFICE_ADDRESS = '63 Fife Road, Colombo 5, Sri Lanka';
+const MAPS_SHARE_LINK = 'https://maps.app.goo.gl/K2owKrG6U6JtRj3y5';
+
+const OFFICE_COORDS = '';
+
+const MAPS_QUERY = OFFICE_COORDS || `The Insight Hive, ${OFFICE_ADDRESS}`;
+const MAPS_EMBED_SRC = `https://maps.google.com/maps?q=${encodeURIComponent(MAPS_QUERY)}&z=17&output=embed`;
+const MAPS_DIRECTIONS = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(MAPS_QUERY)}`;
 
 const socialLinks: Record<string, { href: string; background: string }> = {
   linkedin: {
@@ -16,14 +27,66 @@ const socialLinks: Record<string, { href: string; background: string }> = {
   },
 };
 
+/** Returns whether the office is open right now, based on Sri Lanka time (Mon–Fri, 9:30–17:30). */
+function getOfficeStatus() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Colombo',
+    weekday: 'short',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const weekday = parts.find(p => p.type === 'weekday')?.value ?? '';
+  const hour = Number(parts.find(p => p.type === 'hour')?.value ?? 0) % 24;
+  const minute = Number(parts.find(p => p.type === 'minute')?.value ?? 0);
+  const minutes = hour * 60 + minute;
+
+  const isWeekday = !['Sat', 'Sun'].includes(weekday);
+  return isWeekday && minutes >= 9 * 60 + 30 && minutes < 17 * 60 + 30;
+}
+
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', company: '', message: '' });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [mapActive, setMapActive] = useState(false);
+  const [isOpen, setIsOpen] = useState(getOfficeStatus);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const id = setInterval(() => setIsOpen(getOfficeStatus()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('loading');
-    setTimeout(() => setStatus('success'), 1800);
+    setErrorMsg('');
+
+    const formData = new FormData(e.currentTarget);
+    formData.append('access_key', WEB3FORMS_ACCESS_KEY);
+    formData.append('subject', `New inquiry from ${form.name} – The Insight Hive website`);
+    formData.append('from_name', 'The Insight Hive Website');
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStatus('success');
+        setForm({ name: '', email: '', company: '', message: '' });
+      } else {
+        setStatus('error');
+        setErrorMsg(data.message || 'Something went wrong. Please try again.');
+      }
+    } catch {
+      setStatus('error');
+      setErrorMsg('Network error. Please check your connection and try again.');
+    }
   };
 
   return (
@@ -48,7 +111,7 @@ export default function Contact() {
             <div>
               <h2 className="font-extrabold text-2xl mb-8" style={{ color: '#1A1A1A' }}>Reach Us</h2>
               <div className="flex flex-col gap-8">
-                <ContactItem icon="pin" label="Address" value="63 Fife Road, Colombo 5, Sri Lanka" />
+                <ContactItem icon="pin" label="Address" value={OFFICE_ADDRESS} />
                 <ContactItem icon="phone" label="Phone" value="+94 112 56 76 26" href="tel:+94112567626" />
                 <ContactItem icon="mail" label="Email" value="info@dinsighthive.com" href="mailto:info@dinsighthive.com" />
                 <ContactItem
@@ -97,6 +160,17 @@ export default function Contact() {
               ) : (
                 <form onSubmit={handleSubmit} className="p-8 rounded-2xl flex flex-col gap-5" style={{ background: '#fff', border: '1px solid rgba(26,26,26,0.07)' }}>
                   <h2 className="font-extrabold text-xl mb-2" style={{ color: '#1A1A1A' }}>Send an Inquiry</h2>
+
+                  {/* Honeypot spam protection (hidden from real users) */}
+                  <input
+                    type="checkbox"
+                    name="botcheck"
+                    className="hidden"
+                    style={{ display: 'none' }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+
                   {[
                     { key: 'name', label: 'Name', type: 'text', placeholder: 'Your full name' },
                     { key: 'email', label: 'Email', type: 'email', placeholder: 'you@company.com' },
@@ -106,6 +180,7 @@ export default function Contact() {
                       <label className="block text-sm font-semibold mb-2" style={{ color: '#1A1A1A' }}>{f.label}</label>
                       <input
                         type={f.type}
+                        name={f.key}
                         placeholder={f.placeholder}
                         value={form[f.key as keyof typeof form]}
                         onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
@@ -124,6 +199,7 @@ export default function Contact() {
                   <div>
                     <label className="block text-sm font-semibold mb-2" style={{ color: '#1A1A1A' }}>Message</label>
                     <textarea
+                      name="message"
                       placeholder="Tell us about your brief or challenge..."
                       rows={5}
                       value={form.message}
@@ -135,6 +211,13 @@ export default function Contact() {
                       onBlur={e => { e.target.style.borderColor = 'rgba(26,26,26,0.12)'; e.target.style.boxShadow = 'none'; }}
                     />
                   </div>
+
+                  {status === 'error' && (
+                    <p className="text-sm font-medium" style={{ color: '#C2436B' }} role="alert">
+                      {errorMsg}
+                    </p>
+                  )}
+
                   <button
                     type="submit"
                     disabled={status === 'loading'}
@@ -155,7 +238,126 @@ export default function Contact() {
             </div>
           </div>
         </div>
-      </section >
+      </section>
+
+      {/* Find Us: map */}
+      <section className="pb-24 pt-4" style={{ background: '#EFEFEF' }}>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
+            <div>
+              <p className="text-xs font-semibold tracking-widest mb-3" style={{ color: '#9A9A9A' }}>VISIT THE HIVE</p>
+              <h2 className="font-extrabold leading-tight" style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)', color: '#1A1A1A' }}>
+                <span className="font-light">Come say hello,</span>{' '}
+                <span style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+                  in person.
+                </span>
+              </h2>
+            </div>
+          </div>
+
+          {/* Gradient-bordered frame */}
+          <div
+            className="rounded-[28px] p-[2px]"
+            style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)', boxShadow: '0 30px 60px -20px rgba(122,46,140,0.35)' }}
+          >
+            <div
+              className="relative rounded-[26px] overflow-hidden"
+              style={{ background: '#1A1A1A' }}
+              onMouseEnter={() => setMapActive(true)}
+              onMouseLeave={() => setMapActive(false)}
+              onTouchStart={() => setMapActive(true)}
+            >
+              {/* Map: dark by default, full colour on hover/touch */}
+              <iframe
+                title="The Insight Hive office location"
+                src={MAPS_EMBED_SRC}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+                className="w-full h-[380px] md:h-[560px] block border-0"
+                style={{
+                  filter: mapActive
+                    ? 'grayscale(0) invert(0) contrast(1)'
+                    : 'grayscale(1) invert(0.92) contrast(0.85) brightness(0.95)',
+                  transition: 'filter 0.7s ease',
+                }}
+              />
+
+              {/* Brand tint that fades on hover */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(122,46,140,0.25), rgba(232,114,46,0.12))',
+                  mixBlendMode: 'soft-light',
+                  opacity: mapActive ? 0 : 1,
+                  transition: 'opacity 0.7s ease',
+                }}
+              />
+
+              {/* Floating glass info card */}
+              <div
+                className="md:absolute md:top-8 md:left-8 md:w-[360px] p-6 md:rounded-2xl"
+                style={{
+                  background: 'rgba(26,26,26,0.78)',
+                  backdropFilter: 'blur(18px)',
+                  WebkitBackdropFilter: 'blur(18px)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#F2F2F2',
+                }}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <span className="text-xs font-semibold tracking-widest" style={{ color: '#9A9A9A' }}>THE INSIGHT HIVE HQ</span>
+                  <span
+                    className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full"
+                    style={{
+                      background: isOpen ? 'rgba(52,199,89,0.15)' : 'rgba(255,255,255,0.08)',
+                      color: isOpen ? '#4ADE80' : '#9A9A9A',
+                    }}
+                  >
+                    <span className="relative flex w-2 h-2">
+                      {isOpen && <span className="absolute inline-flex w-full h-full rounded-full animate-ping" style={{ background: '#4ADE80', opacity: 0.7 }} />}
+                      <span className="relative inline-flex w-2 h-2 rounded-full" style={{ background: isOpen ? '#4ADE80' : '#9A9A9A' }} />
+                    </span>
+                    {isOpen ? 'Open now' : 'Closed now'}
+                  </span>
+                </div>
+
+                <p className="font-extrabold text-xl leading-snug mb-1">63 Fife Road</p>
+                <p className="text-sm mb-5" style={{ color: '#9A9A9A' }}>Colombo 5, Sri Lanka</p>
+
+                <div className="flex items-center gap-2 text-sm mb-6" style={{ color: '#D0D0D0' }}>
+                  <Icon name="clock" size={16} />
+                  <span>Mon – Fri · 9.30 AM – 5.30 PM</span>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <a
+                    href={MAPS_DIRECTIONS}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center justify-center gap-2 text-white font-bold text-sm py-3 rounded-full transition-transform hover:scale-[1.02]"
+                    style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)' }}
+                  >
+                    Get Directions
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-1">
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  </a>
+                  <a
+                    href={MAPS_SHARE_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 font-semibold text-sm py-3 rounded-full transition-colors hover:bg-white/10"
+                    style={{ border: '1px solid rgba(255,255,255,0.18)', color: '#F2F2F2' }}
+                  >
+                    Open in Google Maps
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
