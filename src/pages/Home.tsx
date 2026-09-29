@@ -11,25 +11,49 @@ import philosophyPassion from "../assets/home/img02.png"
 import philosophyTrust from "../assets/home/img03.png"
 import philosophyDedication from "../assets/home/img04.png"
 
-const clientNames = [
-  'Emirates', 'Litro Gas', 'Euro Motors', 'Marico', 'All Out', 'Baygon',
-  'Glade', 'KIWI', 'Pledge', 'Asthijeewa', 'UNDP', 'Wipro',
-  'Browns EV', 'MELBET', 'Bellosé', 'Astra',
-];
-
 const logoModules = import.meta.glob('../assets/logo/img*.{png,jpg,jpeg,svg,webp}', {
   eager: true,
   import: 'default',
 }) as Record<string, string>;
 
-const sortedLogoSrcs = Object.keys(logoModules)
-  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-  .map((key) => logoModules[key]);
-
 type Client = { name: string; logo: string };
 
-const clients: Client[] = clientNames
-  .map((name, i) => ({ name, logo: sortedLogoSrcs[i] }))
+/** Finds a logo by its file name (without extension), e.g. "img21". */
+function logoByFile(fileName: string): string {
+  const key = Object.keys(logoModules).find((k) =>
+    new RegExp(`/${fileName}\\.[a-z0-9]+$`, 'i').test(k)
+  );
+  return key ? logoModules[key] : '';
+}
+
+/** Every logo, matched to its real file. Order here = order in the strip. */
+const clientFiles: { name: string; file: string }[] = [
+  { name: 'Emirates', file: 'img01' },
+  { name: 'Marico', file: 'img02' },
+  { name: 'Rathna Polysacks', file: 'img03' },
+  { name: 'Litro Gas', file: 'img04' },
+  { name: 'Asthijeewa', file: 'img05' },
+  { name: 'Astra', file: 'img06' },
+  { name: 'Lemonade', file: 'img07' },
+  { name: 'Baygon', file: 'img08' },
+  { name: 'Mr Muscle', file: 'img09' },
+  { name: 'Glade', file: 'img10' },
+  { name: 'Pledge', file: 'img11' },
+  { name: 'UNDP', file: 'img12' },
+  { name: 'Browns EV', file: 'img13' },
+  // { name: 'Presidential Election 2024', file: 'img14' },
+  { name: 'MELBET', file: 'img15' },
+  { name: 'Bellosé', file: 'img16' },
+  { name: 'KIWI', file: 'img17' },
+  { name: 'All Out', file: 'img18' },
+  { name: 'Wipro', file: 'img19' },
+  { name: "Brew'K", file: 'img20' },
+  { name: 'CBL Sera', file: 'img21' },
+  { name: 'Cycle Pure Incense', file: 'img22' },
+];
+
+const clients: Client[] = clientFiles
+  .map(({ name, file }) => ({ name, logo: logoByFile(file) }))
   .filter((c) => Boolean(c.logo));
 
 const capabilities = [

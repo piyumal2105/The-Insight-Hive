@@ -16,7 +16,8 @@ const sortedClientLogos = Object.keys(clientLogoModules)
   .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   .map((key) => clientLogoModules[key]);
 
-// sortedClientLogos: [0] img01 (UNDP), [1] img02 (Emirates), [2] img03 (Litro Gas), [3] img04, [4] img05 (Lemonade), [5] img06
+// sortedClientLogos: [0] img01 (UNDP), [1] img02 (Emirates), [2] img03 (Litro Gas), [3] img04 (Astra),
+// [4] img05 (Lemonade), [5] img06 (KIWI), [6] img07 (KIWI creative), [7] img08 (Sera), [8] img09 (Cycle)
 const clients = [
   { name: 'Emirates', discipline: 'Integrated Media Planning', logo: sortedClientLogos[1] },
   { name: 'Litro Gas', discipline: 'Brand Strategy & Media', logo: sortedClientLogos[2] },
@@ -24,6 +25,8 @@ const clients = [
   { name: 'Astra', discipline: 'Integrated Campaign, Brand Strategy', logo: sortedClientLogos[3] },
   { name: 'KIWI Shoe Polish', discipline: 'Brand Activation & Media', logo: sortedClientLogos[5] },
   { name: 'Lemonade', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[4] },
+  { name: 'CBL Sera', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[7] },
+  { name: 'Cycle Pure Incense', discipline: 'Brand Strategy & Media', logo: sortedClientLogos[8] },
 ];
 
 const awards = [
@@ -47,7 +50,6 @@ function ResultStat({ value, label, started }: { value: number; label: string; s
 
 export default function OurWork() {
   const { ref: statsRef, inView: statsInView } = useInView(0.2);
-  const [hoveredClient, setHoveredClient] = useState<number | null>(null);
   const [lineVisible, setLineVisible] = useState(false);
   const caseRef = useRef<HTMLDivElement>(null);
 
@@ -86,32 +88,35 @@ export default function OurWork() {
           <h2 className="font-extrabold mb-16" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#1A1A1A' }}>
             <span className="font-light">Clients</span> We've Served
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {/* 2 cols on mobile, 3 on tablet, 4 on desktop → 8 clients = 2 even rows of 4 */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {clients.map((c, i) => (
               <div
                 key={i}
-                className="relative p-8 rounded-2xl flex flex-col items-center text-center cursor-pointer transition-all duration-300"
-                style={{
-                  background: hoveredClient === i ? '#262626' : '#fff',
-                  border: '1px solid rgba(26,26,26,0.07)',
-                  transform: hoveredClient === i ? 'translateY(-4px)' : 'none',
-                }}
-                onMouseEnter={() => setHoveredClient(i)}
-                onMouseLeave={() => setHoveredClient(null)}
+                className="group relative overflow-hidden p-6 pb-7 rounded-2xl flex flex-col items-center text-center cursor-pointer bg-white transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_18px_40px_rgba(122,46,140,0.18)]"
+                style={{ border: '1px solid rgba(26,26,26,0.07)' }}
               >
+                {/* Logo */}
                 <div
-                  className="w-full flex items-center justify-center rounded-xl mb-4 bg-white"
-                  style={{ height: '84px', padding: '10px' }}
+                  className="w-full flex items-center justify-center mb-5"
+                  style={{ height: '170px', padding: '4px' }}
                 >
                   <img
                     src={c.logo}
                     alt={c.name}
-                    className="max-h-full max-w-full"
+                    className="max-h-full max-w-full transition-transform duration-500 ease-out group-hover:scale-105"
                     style={{ objectFit: 'contain' }}
                   />
                 </div>
-                <h3 className="font-bold text-lg mb-1 transition-colors" style={{ color: hoveredClient === i ? '#F2F2F2' : '#1A1A1A' }}>{c.name}</h3>
-                <p className="text-xs transition-colors" style={{ color: '#9A9A9A' }}>{c.discipline}</p>
+
+                <h3 className="font-bold text-lg mb-1" style={{ color: '#1A1A1A' }}>{c.name}</h3>
+                <p className="text-xs" style={{ color: '#9A9A9A' }}>{c.discipline}</p>
+
+                {/* Brand gradient line that slides in on hover */}
+                <span
+                  className="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500 ease-out"
+                  style={{ background: 'linear-gradient(90deg, #7A2E8C, #C2436B, #E8722E)' }}
+                />
               </div>
             ))}
           </div>
@@ -204,12 +209,12 @@ export default function OurWork() {
               </div>
             </div>
             <div className="mt-10 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
-              <div className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)' }}>
+              {/* <div className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)' }}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #7A2E8C, #C2436B, #E8722E)' }}>
                   <Icon name="play" size={18} className="text-white" />
                 </div>
                 <span className="font-semibold" style={{ color: '#F2F2F2' }}>Watch the Rasa Mathaka Journey 2025</span>
-              </div>
+              </div> */}
               <NavLink
                 to="/astra-rasa-mathaka"
                 className="inline-flex items-center gap-2 font-semibold text-sm px-6 py-4 rounded-2xl hover:opacity-80 transition-opacity"

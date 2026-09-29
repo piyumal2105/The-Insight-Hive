@@ -1,9 +1,7 @@
 import { NavLink } from 'react-router';
 import { useEffect, useRef, useState } from 'react';
 import { useInView } from '../components/useInView';
-import { useCountUp } from '../components/useCountUp';
 import Icon from '../components/Icon';
-
 
 import leadershipAwardsImg from '../assets/awards/sri-lanka-leadership-awards-2026.jpg';
 import dragonsAwardImg from '../assets/awards/dragons-of-sri-lanka-2026.jpg';
@@ -27,6 +25,29 @@ const ASTRA_YELLOW = '#FADE4E';
 const ASTRA_YELLOW_DEEP = '#F0B90B';
 const INK = '#1A1A1A';
 const MUTED = '#9A9A9A';
+
+// Local count-up that keeps decimals (the shared hook rounds to whole numbers)
+function useCountUpDecimal(target: number, duration: number, started: boolean) {
+    const [value, setValue] = useState(0);
+    useEffect(() => {
+        if (!started) return;
+        let raf = 0;
+        const startTime = performance.now();
+        const tick = (now: number) => {
+            const p = Math.min((now - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            setValue(target * eased);
+            if (p < 1) raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
+    }, [target, duration, started]);
+    return value;
+}
+
+function formatCount(n: number, count: number) {
+    return Number.isInteger(n) ? Math.round(count).toLocaleString() : count.toFixed(1);
+}
 
 function useStaggerReveal() {
     const [visible, setVisible] = useState(false);
@@ -57,22 +78,27 @@ function BackArrow() {
     );
 }
 
-function ResultNumber({ n, suffix, started }: { n: number; suffix: string; started: boolean }) {
-    const count = useCountUp(n, 2000, started);
-    const display = Number.isInteger(n) ? Math.round(count).toLocaleString() : count.toFixed(1);
+function ResultCard({ n, suffix, label, started }: { n: number; suffix: string; label: string; started: boolean }) {
+    const count = useCountUpDecimal(n, 2000, started);
     return (
-        <div className="text-3xl font-extrabold" style={{ color: '#F7941F' }}>
-            {display}{suffix}
+        <div
+            className="rounded-2xl p-6 h-full flex flex-col justify-between transition-all duration-300 hover:-translate-y-1"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}
+        >
+            <div className="text-3xl xl:text-4xl font-extrabold whitespace-nowrap" style={{ color: '#F7941F' }}>
+                {formatCount(n, count)}{suffix}
+            </div>
+            <p className="text-sm leading-relaxed mt-3" style={{ color: '#9A9A9A' }}>{label}</p>
         </div>
     );
 }
 
 function StatBlock({ number, suffix, label, started }: { number: number; suffix?: string; label: string; started: boolean }) {
-    const count = useCountUp(number, 2000, started);
+    const count = useCountUpDecimal(number, 2000, started);
     return (
         <div className="rounded-2xl p-6" style={{ background: '#fff', border: '1px solid rgba(26,26,26,0.08)' }}>
             <div className="text-5xl font-extrabold mb-2" style={{ color: INK }}>
-                {count.toLocaleString()}{suffix}
+                {formatCount(number, count)}{suffix}
             </div>
             <p className="text-sm leading-relaxed" style={{ color: MUTED }}>{label}</p>
         </div>
@@ -80,7 +106,7 @@ function StatBlock({ number, suffix, label, started }: { number: number; suffix?
 }
 
 function EventDayNumber({ target, label, started }: { target: number; label: string; started: boolean }) {
-    const count = useCountUp(target, 1800, started);
+    const count = useCountUpDecimal(target, 1800, started);
     return (
         <div>
             <div className="text-4xl font-extrabold" style={{ color: INK }}>
@@ -242,6 +268,7 @@ function Lightbox({
 
 export default function CaseStudyAstra() {
     const { ref: statsRef, inView: statsInView } = useInView(0.2);
+    const { ref: resultsRef, inView: resultsInView } = useInView(0.15);
     const { ref: eventRef, inView: eventInView } = useInView(0.2);
     const { ref: frameworkRef, visible: frameworkVisible } = useStaggerReveal();
     const { ref: awardsRef, visible: awardsVisible } = useStaggerReveal();
@@ -378,12 +405,11 @@ export default function CaseStudyAstra() {
                         </h2>
                         <p className="max-w-xl mx-auto" style={{ color: '#9A9A9A' }}>Every number below is a reported campaign result, not an estimate.</p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                    {/* 10 cards → 2 cols (5 rows) on mobile, 5 cols (2 rows) on desktop */}
+                    <div ref={resultsRef} className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-5">
                         {resultStats.map((s) => (
-                            <div key={s.l} className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
-                                <ResultNumber n={s.n} suffix={s.s} started={statsInView} />
-                                <p className="text-sm leading-relaxed mt-2" style={{ color: '#9A9A9A' }}>{s.l}</p>
-                            </div>
+                            <ResultCard key={s.l} n={s.n} suffix={s.s} label={s.l} started={resultsInView} />
                         ))}
                     </div>
 
@@ -395,24 +421,6 @@ export default function CaseStudyAstra() {
                             <EventDayNumber target={5.6} label="Paid Views" started={eventInView} />
                         </div>
                     </div>
-
-                    {/* Video callout */}
-                    <a href="#" className="group mt-12 relative block rounded-2xl overflow-hidden" style={{ height: 340 }}>
-                        <img
-                            src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1400&h=700&fit=crop&auto=format"
-                            alt="Watch the Rasa Mathaka Journey 2025"
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4" style={{ background: 'rgba(26,26,26,0.45)' }}>
-                            <div
-                                className="w-20 h-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
-                                style={{ background: ASTRA_YELLOW }}
-                            >
-                                <div style={{ width: 0, height: 0, borderTop: '14px solid transparent', borderBottom: '14px solid transparent', borderLeft: `22px solid ${INK}`, marginLeft: 6 }} />
-                            </div>
-                            <p className="text-white font-bold text-lg">Watch the Rasa Mathaka Journey 2025</p>
-                        </div>
-                    </a>
                 </div>
             </section>
 
