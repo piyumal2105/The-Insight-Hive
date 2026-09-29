@@ -16,6 +16,26 @@ const sortedClientLogos = Object.keys(clientLogoModules)
   .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   .map((key) => clientLogoModules[key]);
 
+const awardImageModules = import.meta.glob('../assets/awards/*.{png,jpg,jpeg,webp}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
+
+function findAwardImage(namePart: string): string {
+  const key = Object.keys(awardImageModules).find((k) =>
+    k.toLowerCase().includes(namePart.toLowerCase()),
+  );
+  return key ? awardImageModules[key] : '';
+}
+
+// Match by file name (case-insensitive). If a wrong picture shows up, change the text in quotes.
+const imgLeadership = findAwardImage('/awards/awards.png');
+const imgDragon2026 = findAwardImage('dragon2026');
+const imgDragon2025 = findAwardImage('dragon2025');
+const imgSlim01 = findAwardImage('slim digi 01');
+const imgSlim02 = findAwardImage('slim digi 02');
+const imgSlim03 = findAwardImage('slim digi 03');
+
 // sortedClientLogos: [0] img01 (UNDP), [1] img02 (Emirates), [2] img03 (Litro Gas), [3] img04 (Astra),
 // [4] img05 (Lemonade), [5] img06 (KIWI), [6] img07 (KIWI creative), [7] img08 (Sera), [8] img09 (Cycle)
 const clients = [
@@ -29,12 +49,234 @@ const clients = [
   { name: 'Cycle Pure Incense', discipline: 'Brand Strategy & Media', logo: sortedClientLogos[8] },
 ];
 
+// Headline milestones (top row of the section)
 const awards = [
+  { title: 'Dragons of Sri Lanka 2026', sub: '4 Recognitions', color: '#C2436B' },
+  { title: 'SLIM DIGIS 2026', sub: '1 Bronze + 2 Merit Awards', color: '#E8722E' },
   { title: 'Sri Lanka Leadership Awards 2026', sub: '3 Awards Won', color: '#7A2E8C' },
-  { title: 'Dragons of Sri Lanka 2026', sub: 'Category Winner', color: '#C2436B' },
-  { title: 'Global Digital Engagement Leadership', sub: '#1 Globally — Astra Sri Lanka 2025', color: '#E8722E' },
-  { title: '2024 Presidential Election', sub: '~Rs. 1Bn Spend Won vs. Ogilvy Media', color: '#7A2E8C' },
+  { title: 'Global Digital Engagement Leadership', sub: '#1 Globally — Astra Sri Lanka 2025', color: '#C2436B' },
 ];
+
+type Entry = { badge: string; color: string; text?: string; title: string; desc?: string };
+
+type Showcase = {
+  id: string;
+  event: string;
+  heading: string;
+  subheading?: string;
+  intro: string;
+  image: string;
+  imageAlt: string;
+  entries: Entry[];
+  reverse?: boolean;
+};
+
+type SlimCard = {
+  id: string;
+  image: string;
+  badge: string;
+  color: string;
+  category: string;
+  campaign?: string;
+  desc: string;
+};
+
+type LightboxItem = { image: string; event: string; title: string; caption?: string };
+
+const GOLD = '#D9A21B';
+const BRONZE = '#B8703A';
+const BLACK_DRAGON = '#000000';
+
+// Dragons of Sri Lanka 2026
+const dragons2026: Showcase = {
+  id: 'dragons-2026',
+  event: 'Dragons of Sri Lanka Awards 2026',
+  heading: 'Mage Hondama Chef Mage Amma',
+  subheading: 'My Best Chef, My Amma',
+  intro:
+    'A heartfelt campaign celebrating the love, talent and culinary magic of mothers. It received four recognitions, highlighting excellence in social media and AI-driven advertising, as well as digital and creative execution.',
+  image: imgDragon2026,
+  imageAlt: 'Dragons of Sri Lanka 2026 — Gold, Bronze and two Black Dragon certificates',
+  entries: [
+    {
+      badge: 'Gold',
+      color: GOLD,
+      text: '#1A1A1A',
+      title: 'Social Media-Based Advertising',
+      desc: 'Top honour for turning a heartfelt idea into a social-first campaign that connected with audiences.',
+    },
+    {
+      badge: 'Bronze',
+      color: BRONZE,
+      title: 'AI-Based Advertising',
+      desc: 'Recognised for the creative use of AI in bringing the campaign story to life.',
+    },
+    {
+      badge: 'Black Dragon',
+      color: BLACK_DRAGON,
+      title: 'Digital Excellence',
+      desc: 'Celebrates outstanding digital execution across the campaign.',
+    },
+    {
+      badge: 'Black Dragon',
+      color: BLACK_DRAGON,
+      title: 'Creative Excellence',
+      desc: 'Awarded for the strength of the creative idea and the craft behind it.',
+    },
+  ],
+};
+
+// SLIM DIGIS 2026 (3 cards in one row)
+const slimCards: SlimCard[] = [
+  {
+    id: 'slim-game-of-christmas',
+    image: imgSlim03,
+    badge: 'Merit',
+    color: '#7A2E8C',
+    category: 'FMCG: Food & Beverages',
+    campaign: 'Game of Christmas',
+    desc: 'Brought festive engagement and brand storytelling together through a creative digital campaign.',
+  },
+  {
+    id: 'slim-baking',
+    image: imgSlim01,
+    badge: 'Merit',
+    color: '#7A2E8C',
+    category: 'FMCG: Food & Beverages',
+    campaign: 'Baking Nam Cake, Cake Nam Baking',
+    desc: 'Celebrated the joy of baking through an engaging digital campaign that connected with audiences through creativity and brand relevance.',
+  },
+  {
+    id: 'slim-creators',
+    image: imgSlim02,
+    badge: 'Bronze',
+    color: BRONZE,
+    category: 'Best Use of Creators / Influencers',
+    desc: 'Recognised for the effective use of creators and influencers, showing the power of creator-led storytelling in building brand engagement.',
+  },
+];
+
+// Sri Lanka Leadership Awards 2026
+const leadership2026: Showcase = {
+  id: 'leadership-2026',
+  event: 'Sri Lanka Leadership Awards 2026',
+  heading: 'Three trophies, one night',
+  intro:
+    'Presented on 25 August 2026 at Taj Samudra, Colombo, recognising the agency and the Astra Spread campaign Mage Hondama Chef Mage Amma (My Best Chef, My Amma).',
+  image: imgLeadership,
+  imageAlt: 'Sri Lanka Leadership Awards 2026 — three trophies and certificates',
+  reverse: true,
+  entries: [
+    {
+      badge: 'Winner',
+      color: '#7A2E8C',
+      title: 'Digital Agency of the Year',
+      desc: 'Celebrates the agency’s contribution to digital innovation, creative excellence and impactful brand communication.',
+    },
+    {
+      badge: 'Winner',
+      color: '#C2436B',
+      title: 'Best Use of Social Media',
+      desc: 'Mage Hondama Chef Mage Amma showed the power of social storytelling in bringing a meaningful brand idea to life and creating an engaging connection with audiences.',
+    },
+    {
+      badge: 'Winner',
+      color: '#E8722E',
+      title: 'Marketing Campaign of the Year',
+      desc: 'Mage Hondama Chef Mage Amma, for Astra Spread.',
+    },
+  ],
+};
+
+// Dragons of Sri Lanka 2025
+const dragons2025: Showcase = {
+  id: 'dragons-2025',
+  event: 'Dragons of Sri Lanka Awards 2025',
+  heading: 'Astra Rasa Mathaka',
+  subheading: 'Tasteful Memories with Astra',
+  intro:
+    'The nostalgia-led Astra campaign earned a Black Dragon for Integrated Marketing, entered by The Insight Hive Sri Lanka for Flora Food Group Sri Lanka.',
+  image: imgDragon2025,
+  imageAlt: 'Dragons of Sri Lanka 2025 — Black Dragon certificate for Integrated Marketing',
+  entries: [
+    { badge: 'Black Dragon', color: BLACK_DRAGON, title: 'Integrated Marketing' },
+  ],
+};
+
+function AwardShowcase({
+  group,
+  first = false,
+  onOpen,
+}: {
+  group: Showcase;
+  first?: boolean;
+  onOpen: (item: LightboxItem) => void;
+}) {
+  const title = group.subheading ? `${group.heading} (${group.subheading})` : group.heading;
+  return (
+    <div
+      className={first ? 'mt-20' : 'mt-20 pt-16'}
+      style={first ? undefined : { borderTop: '1px solid rgba(255,255,255,0.1)' }}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
+        {/* Image */}
+        <button
+          type="button"
+          onClick={() => group.image && onOpen({ image: group.image, event: group.event, title })}
+          aria-label={`View ${group.event} — ${title}`}
+          className={`group lg:col-span-3 rounded-2xl overflow-hidden block w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722E] transition-all duration-300 hover:shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${group.reverse ? 'lg:order-2' : ''}`}
+          style={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          {group.image ? (
+            <img
+              src={group.image}
+              alt={group.imageAlt}
+              loading="lazy"
+              className="w-full h-auto block transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+            />
+          ) : (
+            <span className="flex items-center justify-center h-64 text-xs" style={{ color: '#9A9A9A' }}>
+              Image not found in src/assets/awards
+            </span>
+          )}
+        </button>
+
+        {/* Text */}
+        <div className={`lg:col-span-2 ${group.reverse ? 'lg:order-1' : ''}`}>
+          <p className="text-sm font-semibold mb-3" style={{ color: '#E8722E' }}>{group.event}</p>
+          <h3 className="font-extrabold leading-tight mb-2" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', color: '#F2F2F2' }}>
+            {group.heading}
+          </h3>
+          {group.subheading && (
+            <p className="font-light text-lg mb-4" style={{ color: '#D0D0D0' }}>{group.subheading}</p>
+          )}
+          <p className="leading-relaxed mb-8" style={{ color: '#9A9A9A' }}>{group.intro}</p>
+
+          <ul className="flex flex-col">
+            {group.entries.map((e, i) => (
+              <li
+                key={i}
+                className="py-4 flex flex-col gap-2"
+                style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span
+                    className="px-3 py-1 rounded-full text-xs font-bold"
+                    style={{ background: e.color, color: e.text ?? '#fff', border: '1px solid rgba(255,255,255,0.18)' }}
+                  >
+                    {e.badge}
+                  </span>
+                  <span className="font-bold text-base" style={{ color: '#F2F2F2' }}>{e.title}</span>
+                </div>
+                {e.desc && <p className="text-sm leading-relaxed" style={{ color: '#9A9A9A' }}>{e.desc}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ResultStat({ value, label, started }: { value: number; label: string; started: boolean }) {
   const count = useCountUp(value, 2000, started);
@@ -51,6 +293,7 @@ function ResultStat({ value, label, started }: { value: number; label: string; s
 export default function OurWork() {
   const { ref: statsRef, inView: statsInView } = useInView(0.2);
   const [lineVisible, setLineVisible] = useState(false);
+  const [activeAward, setActiveAward] = useState<LightboxItem | null>(null);
   const caseRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,6 +303,19 @@ export default function OurWork() {
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
+
+  // Lightbox: close on Esc + lock page scroll while open
+  useEffect(() => {
+    if (!activeAward) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setActiveAward(null); };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [activeAward]);
 
   const steps = [
     { step: '01', title: 'Objective', desc: 'Reconnect consumers with 50+ years of nostalgic "Rasa Mathaka" heritage — reviving an emotional bond between the brand and Sri Lanka.' },
@@ -126,10 +382,15 @@ export default function OurWork() {
       {/* Awards */}
       <section className="py-24" style={{ background: '#262626' }}>
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="font-extrabold mb-16" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#F2F2F2' }}>
+          <h2 className="font-extrabold mb-6" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#F2F2F2' }}>
             <span className="font-light">Awards &</span> Milestones
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <p className="max-w-2xl mb-16 leading-relaxed" style={{ color: '#9A9A9A' }}>
+            Recognised for creativity, digital excellence and integrated marketing, built with the brands that trust us.
+          </p>
+
+          {/* Headline milestones */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             {awards.map((a, i) => (
               <div key={i} className="p-6 rounded-2xl relative overflow-hidden group" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: a.color }} />
@@ -137,12 +398,100 @@ export default function OurWork() {
                   <div className="absolute top-0 left-[-100%] w-full h-full skew-x-12" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)', animation: 'shine 1.5s ease infinite' }} />
                 </div>
                 <h3 className="font-extrabold text-sm mb-2" style={{ color: '#F2F2F2' }}>{a.title}</h3>
-                <p className="text-xs font-semibold" style={{ color: a.color }}>{a.sub}</p>
+                <p className="text-xs font-semibold" style={{ color: a.color === '#7A2E8C' ? '#B266C7' : a.color }}>{a.sub}</p>
               </div>
             ))}
           </div>
+
+          {/* Dragons of Sri Lanka 2026 */}
+          <AwardShowcase group={dragons2026} first onOpen={setActiveAward} />
+
+          {/* SLIM DIGIS 2026 */}
+          <div className="mt-20 pt-16" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <p className="text-sm font-semibold mb-3" style={{ color: '#E8722E' }}>SLIM DIGIS 2026</p>
+            <h3 className="font-extrabold mb-4" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', color: '#F2F2F2' }}>
+              <span className="font-light">Three wins for</span> Food &amp; Beverage
+            </h3>
+            <p className="max-w-2xl mb-10 leading-relaxed" style={{ color: '#9A9A9A' }}>
+              Two Merit awards and a Bronze from the Sri Lanka Institute of Marketing’s digital awards.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {slimCards.map((c) => (
+                <div
+                  key={c.id}
+                  className="group rounded-2xl overflow-hidden flex flex-col relative transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_18px_40px_rgba(0,0,0,0.45)]"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => c.image && setActiveAward({ image: c.image, event: `SLIM DIGIS 2026 · ${c.badge}`, title: c.campaign ?? c.category, caption: c.category })}
+                    aria-label={`View ${c.badge} award — ${c.campaign ?? c.category}`}
+                    className="relative block w-full overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722E]"
+                    style={{ aspectRatio: '5 / 4', background: '#1A1A1A' }}
+                  >
+                    {c.image ? (
+                      <img src={c.image} alt={`SLIM DIGIS 2026 ${c.badge} — ${c.campaign ?? c.category}`} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+                    ) : (
+                      <span className="w-full h-full flex items-center justify-center text-xs" style={{ color: '#9A9A9A' }}>Image not found in src/assets/awards</span>
+                    )}
+                    <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold text-white" style={{ background: c.color, boxShadow: '0 4px 14px rgba(0,0,0,0.35)' }}>
+                      {c.badge}
+                    </span>
+                  </button>
+                  <div className="p-6 flex flex-col gap-2 flex-1">
+                    <p className="text-xs font-semibold" style={{ color: '#E8722E' }}>{c.category}</p>
+                    {c.campaign && <h4 className="font-extrabold text-base leading-snug" style={{ color: '#F2F2F2' }}>{c.campaign}</h4>}
+                    <p className="text-sm leading-relaxed" style={{ color: '#9A9A9A' }}>{c.desc}</p>
+                  </div>
+                  <span className="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500 ease-out" style={{ background: 'linear-gradient(90deg, #7A2E8C, #C2436B, #E8722E)' }} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sri Lanka Leadership Awards 2026 */}
+          <AwardShowcase group={leadership2026} onOpen={setActiveAward} />
+
+          {/* Dragons of Sri Lanka 2025 */}
+          <AwardShowcase group={dragons2025} onOpen={setActiveAward} />
         </div>
       </section>
+
+      {/* Award lightbox */}
+      {activeAward && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${activeAward.event} — ${activeAward.title}`}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10"
+          style={{ background: 'rgba(10,10,10,0.88)', backdropFilter: 'blur(6px)' }}
+          onClick={() => setActiveAward(null)}
+        >
+          <div
+            className="relative max-w-5xl w-full max-h-full flex flex-col rounded-2xl overflow-hidden"
+            style={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.12)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setActiveAward(null)}
+              aria-label="Close"
+              className="absolute top-3 right-3 z-10 w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722E]"
+              style={{ background: 'rgba(26,26,26,0.8)', color: '#F2F2F2' }}
+            >
+              ×
+            </button>
+            <div className="flex-1 min-h-0 flex items-center justify-center" style={{ background: '#111' }}>
+              <img src={activeAward.image} alt={`${activeAward.event} — ${activeAward.title}`} className="max-w-full object-contain" style={{ maxHeight: '70vh' }} />
+            </div>
+            <div className="p-6">
+              <p className="text-xs font-semibold mb-1" style={{ color: '#E8722E' }}>{activeAward.event}</p>
+              <h4 className="font-extrabold text-lg mb-1" style={{ color: '#F2F2F2' }}>{activeAward.title}</h4>
+              {activeAward.caption && <p className="text-xs" style={{ color: '#9A9A9A' }}>{activeAward.caption}</p>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Case study */}
       <section className="py-24" style={{ background: '#EFEFEF' }}>

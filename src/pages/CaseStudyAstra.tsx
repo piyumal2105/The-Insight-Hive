@@ -3,8 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useInView } from '../components/useInView';
 import Icon from '../components/Icon';
 
-import leadershipAwardsImg from '../assets/awards/sri-lanka-leadership-awards-2026.jpg';
+import leadershipAwardsImg from '../assets/awards/awards.png';
 import dragonsAwardImg from '../assets/awards/dragons-of-sri-lanka-2026.jpg';
+
+import rasamathakaHeroImg from '../assets/rasamathakagallery/img14.png';
 
 // Gallery photos (Rasa Mathaka on-ground activation)
 import gallery01 from '../assets/rasamathakagallery/img01.jpg';
@@ -301,11 +303,8 @@ export default function CaseStudyAstra() {
                     className="absolute inset-0"
                     style={{ background: `radial-gradient(circle at 15% 20%, ${ASTRA_YELLOW}22, transparent 55%)` }}
                 />
-                <div className="relative z-10 max-w-7xl mx-auto px-6 pt-12 pb-20">
-                    <NavLink to="/our-work" className="inline-flex items-center gap-2 text-sm font-semibold mb-10 hover:opacity-80 transition-opacity" style={{ color: MUTED }}>
-                        {/* <BackArrow /> Back to Our Work */}
-                    </NavLink>
-
+                {/* pt-32/pt-36 clears the fixed navbar so the badge is no longer hidden */}
+                <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 md:pt-36 pb-20">
                     <div
                         className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-6 tracking-widest"
                         style={{ background: ASTRA_YELLOW, color: INK }}
@@ -326,11 +325,15 @@ export default function CaseStudyAstra() {
                         ))}
                     </div>
 
-                    <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 30px 80px rgba(0,0,0,0.4)' }}>
+                    {/* Hero image: full 16:9 frame, nothing cropped */}
+                    <div
+                        className="rounded-2xl overflow-hidden"
+                        style={{ boxShadow: '0 30px 80px rgba(0,0,0,0.4)', background: '#000' }}
+                    >
                         <img
-                            src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600&h=700&fit=crop&auto=format"
-                            alt="Astra Rasa Mathaka campaign"
-                            className="w-full h-[320px] md:h-[440px] object-cover"
+                            src={rasamathakaHeroImg}
+                            alt="Astra Rasa Mathaka campaign — drone carrying a lit Astra spread pack at night"
+                            className="w-full aspect-video object-contain block"
                         />
                     </div>
                 </div>
