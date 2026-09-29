@@ -518,7 +518,7 @@ export default function CaseStudyAstra() {
                         <NavLink to="/our-work" className="inline-flex items-center gap-2 text-sm font-semibold hover:opacity-70 transition-opacity" style={{ color: INK }}>
                             <BackArrow /> Back to Our Work
                         </NavLink>
-                        <NavLink to="/our-work#kiwi-shoe-polish" className="inline-flex items-center gap-2 text-sm font-semibold hover:opacity-70 transition-opacity" style={{ color: INK }}>
+                        <NavLink to="/kiwi-get-ready-to-shine" className="inline-flex items-center gap-2 text-sm font-semibold hover:opacity-70 transition-opacity" style={{ color: INK }}>
                             Next: KIWI — Shoe Polish <Icon name="arrow-right" size={14} />
                         </NavLink>
                     </div>
