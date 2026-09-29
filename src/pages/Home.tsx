@@ -247,29 +247,39 @@ export default function Home() {
           className="relative z-10 max-w-7xl mx-auto px-6 pb-16 lg:pb-20 flex items-center"
           style={{ minHeight: '100vh', paddingTop: 110 }}
         >
-          <div className="max-w-2xl">
-            {/* <div
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-8 tracking-widest"
-              style={{ background: 'rgba(146,39,143,0.1)', color: '#92278F', animation: 'fadeUp 0.6s ease both' }}
-            >
-              OMNICOM GROUP AFFILIATE
-            </div> */}
+          <div className="max-w-3xl">
             <h1
-              className="font-extrabold leading-[1.02] mb-6"
-              style={{ fontSize: 'clamp(2.75rem, 6.5vw, 5.25rem)', color: '#1A1A1A', animation: 'fadeUp 0.6s ease 0.1s both', letterSpacing: '-0.02em' }}
+              className="font-extrabold leading-[1.05] mb-6"
+              style={{
+                fontSize: 'clamp(2.5rem, 5.5vw, 4.5rem)',
+                color: '#1A1A1A',
+                animation: 'fadeUp 0.6s ease 0.1s both',
+                letterSpacing: '-0.02em',
+              }}
             >
-              <span className="font-light">The</span>{' '}
-              {/* nowrap + non-breaking hyphen keeps "All-Rounders" on one line */}
-              <span style={{ whiteSpace: 'nowrap', background: 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>All&#8209;Rounders</span>{' '}
-              <span className="font-light">of</span>{' '}
-              <span>Marketing</span>
+              <span className="font-light">Your</span>{' '}
+              {/* non-breaking hyphen keeps "All-Round" together; the line can still wrap before "Partners" */}
+              <span
+                style={{
+                  background: 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                All&#8209;Round Partners
+              </span>{' '}
+              <span className="font-light">in</span>{' '}
+              <span>Marketing Communication</span>
             </h1>
+
             <p
-              className="text-lg mb-10 max-w-xl leading-relaxed"
+              className="text-lg mb-10 max-w-2xl leading-relaxed"
               style={{ color: '#5E5E5E', animation: 'fadeUp 0.6s ease 0.2s both' }}
             >
-              Brand Strategy, Consumer Insight, Creative, Integrated Media, Digital, and Data — under one roof. Founded by veterans with 44+ years combined experience.
+              We bring together strategy, consumer insight, creative, media, digital and data to help brands connect with people. Our approach starts with listening, draws on years of experience, and grows through close collaboration with our clients.
             </p>
+
             <div className="flex flex-wrap gap-4" style={{ animation: 'fadeUp 0.6s ease 0.3s both' }}>
               <NavLink
                 ref={heroLetsTalk.ref}
@@ -279,7 +289,7 @@ export default function Home() {
                 style={heroLetsTalk.style}
                 className="btn-grad text-white font-bold px-8 py-4 rounded-full text-base transition-transform"
               >
-                Let's Talk
+                Let’s Talk
               </NavLink>
               <NavLink
                 ref={heroSeeWork.ref}
@@ -289,7 +299,7 @@ export default function Home() {
                 style={heroSeeWork.style}
                 className="see-work-btn font-semibold px-8 py-4 rounded-full text-base border-2 transition-colors"
               >
-                See Our Work
+                Explore Our Work
               </NavLink>
             </div>
           </div>
@@ -305,7 +315,7 @@ export default function Home() {
             *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
           }
           /*
-            "See Our Work" button colors live here (instead of inline style)
+            "Explore Our Work" button colors live here (instead of inline style)
             so :hover can actually override them. Inline style props always
             beat Tailwind's hover: classes, which was why the hover state
             (light text) was landing on the same light background and
