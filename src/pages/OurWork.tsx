@@ -44,7 +44,7 @@ const clients = [
   { name: 'Litro Gas', discipline: 'Brand Strategy & Media', logo: sortedClientLogos[2] },
   { name: 'UNDP', discipline: 'Social Impact Communications', logo: sortedClientLogos[0] },
   { name: 'Astra', discipline: 'Integrated Campaign, Brand Strategy', logo: sortedClientLogos[3] },
-  { name: 'KIWI Shoe Polish', discipline: 'Brand Activation & Media', logo: sortedClientLogos[5] },
+  { name: 'BRILLON', discipline: 'Brand Activation & Media', logo: sortedClientLogos[13] },
   { name: 'Lemonade', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[4] },
   { name: 'CBL Sera', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[7] },
   { name: 'Cycle Pure Incense', discipline: 'Brand Strategy & Media', logo: sortedClientLogos[8] },

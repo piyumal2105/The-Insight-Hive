@@ -44,7 +44,7 @@ const clientFiles: { name: string; file: string }[] = [
   // { name: 'Presidential Election 2024', file: 'img14' },
   { name: 'MELBET', file: 'img15' },
   { name: 'Bellosé', file: 'img16' },
-  { name: 'KIWI', file: 'img17' },
+  { name: 'BRILLON', file: 'img27' },
   { name: 'All Out', file: 'img18' },
   { name: 'Wipro', file: 'img19' },
   { name: "Brew'K", file: 'img20' },
