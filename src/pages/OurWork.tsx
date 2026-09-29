@@ -37,7 +37,8 @@ const imgSlim02 = findAwardImage('slim digi 02');
 const imgSlim03 = findAwardImage('slim digi 03');
 
 // sortedClientLogos: [0] img01 (UNDP), [1] img02 (Emirates), [2] img03 (Litro Gas), [3] img04 (Astra),
-// [4] img05 (Lemonade), [5] img06 (KIWI), [6] img07 (KIWI creative), [7] img08 (Sera), [8] img09 (Cycle)
+// [4] img05 (Lemonade), [5] img06 (KIWI), [6] img07 (KIWI creative), [7] img08 (Sera), [8] img09 (Cycle),
+// [9] img10 (Jockey), [10] img11 (Assetline Finance), [11] img12 (Pure Dale), [12] img13 (Maharishi Naturals)
 const clients = [
   { name: 'Emirates', discipline: 'Integrated Media Planning', logo: sortedClientLogos[1] },
   { name: 'Litro Gas', discipline: 'Brand Strategy & Media', logo: sortedClientLogos[2] },
@@ -47,6 +48,10 @@ const clients = [
   { name: 'Lemonade', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[4] },
   { name: 'CBL Sera', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[7] },
   { name: 'Cycle Pure Incense', discipline: 'Brand Strategy & Media', logo: sortedClientLogos[8] },
+  { name: 'Jockey', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[9] },
+  { name: 'Assetline Finance', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[10] },
+  { name: 'Pure Dale', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[11] },
+  { name: 'Maharishi Naturals', discipline: 'Brand Campaign & Media', logo: sortedClientLogos[12] },
 ];
 
 // Headline milestones (top row of the section)
@@ -69,6 +74,10 @@ type Showcase = {
   imageAlt: string;
   entries: Entry[];
   reverse?: boolean;
+  /** Forces the image into a fixed frame (e.g. '3 / 2') so it matches the Leadership layout. */
+  imageRatio?: string;
+  /** Slightly tighter text spacing so the text column height matches the image. */
+  compact?: boolean;
 };
 
 type SlimCard = {
@@ -97,6 +106,8 @@ const dragons2026: Showcase = {
     'A heartfelt campaign celebrating the love, talent and culinary magic of mothers. It received four recognitions, highlighting excellence in social media and AI-driven advertising, as well as digital and creative execution.',
   image: imgDragon2026,
   imageAlt: 'Dragons of Sri Lanka 2026 — Gold, Bronze and two Black Dragon certificates',
+  imageRatio: '3 / 2',
+  compact: true,
   entries: [
     {
       badge: 'Gold',
@@ -152,7 +163,8 @@ const slimCards: SlimCard[] = [
     badge: 'Bronze',
     color: BRONZE,
     category: 'Best Use of Creators / Influencers',
-    desc: 'Recognised for the effective use of creators and influencers, showing the power of creator-led storytelling in building brand engagement.',
+    campaign: 'Kamathiyi, Kamathiyi, Kamathiyi',
+    desc: 'Recognised for the effective use of creators and influencers, this Bronze-winning campaign demonstrated the power of creator-led storytelling in building brand engagement and connecting with audiences.',
   },
 ];
 
@@ -203,20 +215,21 @@ const dragons2025: Showcase = {
   ],
 };
 
+// All showcases use the same layout as "Three trophies, one night".
+// Only the image side changes via `reverse`.
 function AwardShowcase({
   group,
-  first = false,
   onOpen,
 }: {
   group: Showcase;
-  first?: boolean;
   onOpen: (item: LightboxItem) => void;
 }) {
   const title = group.subheading ? `${group.heading} (${group.subheading})` : group.heading;
+  const fixedFrame = Boolean(group.imageRatio);
   return (
     <div
-      className={first ? 'mt-20' : 'mt-20 pt-16'}
-      style={first ? undefined : { borderTop: '1px solid rgba(255,255,255,0.1)' }}
+      className="mt-20 pt-16"
+      style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
     >
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
         {/* Image */}
@@ -224,15 +237,19 @@ function AwardShowcase({
           type="button"
           onClick={() => group.image && onOpen({ image: group.image, event: group.event, title })}
           aria-label={`View ${group.event} — ${title}`}
-          className={`group lg:col-span-3 rounded-2xl overflow-hidden block w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722E] transition-all duration-300 hover:shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${group.reverse ? 'lg:order-2' : ''}`}
-          style={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)' }}
+          className={`group lg:col-span-3 rounded-2xl overflow-hidden block w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722E] transition-all duration-300 shadow-[0_12px_32px_rgba(0,0,0,0.35)] hover:shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${group.reverse ? 'lg:order-2' : ''}`}
+          style={{
+            background: '#1A1A1A',
+            border: '1px solid rgba(255,255,255,0.1)',
+            ...(fixedFrame ? { aspectRatio: group.imageRatio } : {}),
+          }}
         >
           {group.image ? (
             <img
               src={group.image}
               alt={group.imageAlt}
               loading="lazy"
-              className="w-full h-auto block transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+              className={`w-full block transition-transform duration-700 ease-out group-hover:scale-[1.02] ${fixedFrame ? 'h-full object-cover object-center' : 'h-auto'}`}
             />
           ) : (
             <span className="flex items-center justify-center h-64 text-xs" style={{ color: '#9A9A9A' }}>
@@ -248,15 +265,15 @@ function AwardShowcase({
             {group.heading}
           </h3>
           {group.subheading && (
-            <p className="font-light text-lg mb-4" style={{ color: '#D0D0D0' }}>{group.subheading}</p>
+            <p className={`font-light text-lg ${group.compact ? 'mb-3' : 'mb-4'}`} style={{ color: '#D0D0D0' }}>{group.subheading}</p>
           )}
-          <p className="leading-relaxed mb-8" style={{ color: '#9A9A9A' }}>{group.intro}</p>
+          <p className={`leading-relaxed ${group.compact ? 'mb-6' : 'mb-8'}`} style={{ color: '#9A9A9A' }}>{group.intro}</p>
 
           <ul className="flex flex-col">
             {group.entries.map((e, i) => (
               <li
                 key={i}
-                className="py-4 flex flex-col gap-2"
+                className={`flex flex-col gap-2 ${group.compact ? 'py-3' : 'py-4'}`}
                 style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
               >
                 <div className="flex items-center gap-3 flex-wrap">
@@ -344,7 +361,7 @@ export default function OurWork() {
           <h2 className="font-extrabold mb-16" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#1A1A1A' }}>
             <span className="font-light">Clients</span> We've Served
           </h2>
-          {/* 2 cols on mobile, 3 on tablet, 4 on desktop → 8 clients = 2 even rows of 4 */}
+          {/* 2 cols on mobile, 3 on tablet, 4 on desktop → 12 clients = 3 even rows of 4 */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {clients.map((c, i) => (
               <div
@@ -385,26 +402,26 @@ export default function OurWork() {
           <h2 className="font-extrabold mb-6" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#F2F2F2' }}>
             <span className="font-light">Awards &</span> Milestones
           </h2>
-          <p className="max-w-2xl mb-16 leading-relaxed" style={{ color: '#9A9A9A' }}>
+          <p className="max-w-2xl mb-16 leading-relaxed text-lg" style={{ color: '#9A9A9A' }}>
             Recognised for creativity, digital excellence and integrated marketing, built with the brands that trust us.
           </p>
 
           {/* Headline milestones */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             {awards.map((a, i) => (
-              <div key={i} className="p-6 rounded-2xl relative overflow-hidden group" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div key={i} className="p-8 rounded-2xl relative overflow-hidden group" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: a.color }} />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
                   <div className="absolute top-0 left-[-100%] w-full h-full skew-x-12" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)', animation: 'shine 1.5s ease infinite' }} />
                 </div>
-                <h3 className="font-extrabold text-sm mb-2" style={{ color: '#F2F2F2' }}>{a.title}</h3>
-                <p className="text-xs font-semibold" style={{ color: a.color === '#7A2E8C' ? '#B266C7' : a.color }}>{a.sub}</p>
+                <h3 className="font-extrabold text-lg leading-snug mb-3" style={{ color: '#F2F2F2' }}>{a.title}</h3>
+                <p className="text-base font-semibold" style={{ color: a.color === '#7A2E8C' ? '#B266C7' : a.color }}>{a.sub}</p>
               </div>
             ))}
           </div>
 
           {/* Dragons of Sri Lanka 2026 */}
-          <AwardShowcase group={dragons2026} first onOpen={setActiveAward} />
+          <AwardShowcase group={dragons2026} onOpen={setActiveAward} />
 
           {/* SLIM DIGIS 2026 */}
           <div className="mt-20 pt-16" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>

@@ -50,6 +50,10 @@ const clientFiles: { name: string; file: string }[] = [
   { name: "Brew'K", file: 'img20' },
   { name: 'CBL Sera', file: 'img21' },
   { name: 'Cycle Pure Incense', file: 'img22' },
+  { name: 'Jockey', file: 'img23' },
+  { name: 'Assetline Finance', file: 'img24' },
+  { name: 'Pure Dale', file: 'img25' },
+  { name: 'Maharishi Naturals', file: 'img26' },
 ];
 
 const clients: Client[] = clientFiles
@@ -115,6 +119,74 @@ function StatCard({ prefix, number, suffix, label, started }: { prefix?: string;
         {prefix}{count.toLocaleString()}{suffix}
       </div>
       <p className="text-sm leading-relaxed" style={{ color: '#9A9A9A' }}>{label}</p>
+    </div>
+  );
+}
+
+/** Full-width featured milestone card (used for the latest achievement). */
+function FeaturedMilestone({ started }: { started: boolean }) {
+  const count = useCountUp(2, 1800, started);
+  return (
+    <div
+      className="featured-milestone sm:col-span-2 lg:col-span-3 rounded-2xl p-8 md:p-10 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1"
+      style={{
+        background:
+          'linear-gradient(#2E2E2E, #2E2E2E) padding-box, linear-gradient(135deg, #92278F, #C2436B, #F7941F) border-box',
+        border: '1.5px solid transparent',
+      }}
+    >
+      {/* soft glow */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: -140,
+          right: -140,
+          width: 420,
+          height: 420,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(247,148,31,0.12) 0%, transparent 70%)',
+        }}
+      />
+
+      <div className="relative grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12 items-center">
+        {/* Left: headline stat */}
+        <div className="md:col-span-2">
+          <span
+            className="inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-widest mb-5"
+            style={{ background: 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)', color: '#fff' }}
+          >
+            MILESTONE
+          </span>
+          <div
+            className="font-extrabold leading-none mb-3"
+            style={{
+              fontSize: 'clamp(2.5rem, 5vw, 3.75rem)',
+              background: 'linear-gradient(90deg, #92278F, #C2436B, #F7941F)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            {count} Consecutive Quarters
+          </div>
+          <div className="font-bold text-xl md:text-2xl" style={{ color: '#F2F2F2' }}>
+            One leading position.
+          </div>
+        </div>
+
+        {/* Right: story */}
+        <div className="md:col-span-3">
+          <h3 className="font-bold text-lg md:text-xl mb-4" style={{ color: '#F2F2F2' }}>
+            We’re proud to have helped Astra Sri Lanka rank No. 1 for social engagement across Blue Band markets for two consecutive quarters.
+          </h3>
+          <p className="text-sm md:text-base leading-relaxed mb-4" style={{ color: '#9A9A9A' }}>
+            At The Insight Hive, we believe meaningful engagement begins with understanding people. Bringing those insights to life through locally relevant creativity makes this milestone especially rewarding.
+          </p>
+          <p className="text-sm md:text-base leading-relaxed" style={{ color: '#9A9A9A' }}>
+            A shared achievement with our partners at Astra, our passionate team, and the community that keeps the conversation going.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -459,6 +531,9 @@ export default function Home() {
             <StatCard number={3} suffix=" Awards" label="Sri Lanka Leadership Awards 2026 winner." started={statsInView} />
             <StatCard number={90} suffix="+ Markets" label="Outperformed globally with Astra Sri Lanka's integrated digital campaign." started={statsInView} />
             <StatCard number={44} suffix="+ Years" label="Combined founding team experience in marketing communications." started={statsInView} />
+
+            {/* Latest milestone — full-width featured card */}
+            <FeaturedMilestone started={statsInView} />
           </div>
         </div>
       </section>

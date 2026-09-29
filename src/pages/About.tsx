@@ -3,6 +3,10 @@ import HexIcon from '../components/HexIcon';
 import Icon from '../components/Icon';
 import { NavLink } from 'react-router';
 
+import omnicomLogo from '../assets/about/omnicomlogo.png';
+import umLogo from '../assets/about/um.jpeg';
+import initiativeLogo from '../assets/about/Initiative.png';
+
 const teamPhotoModules = import.meta.glob('../assets/team/img*.{jpeg,jpg,png,webp}', {
   eager: true,
   import: 'default',
@@ -67,18 +71,32 @@ const network = [
     sub: 'Global Media & Marketing Holding Company',
     desc: 'New York HQ. One of the world\'s largest holding companies spanning media, marketing, and communications.',
     color: '#7A2E8C',
+    logo: omnicomLogo,
+    // Omnicom image has lots of white padding, so scale it up inside the tile
+    tileWidth: 176,
+    tileBg: '#FFFFFF',
+    imgStyle: { objectFit: 'contain' as const, transform: 'scale(2.15)' },
   },
   {
     name: 'UM Worldwide',
     sub: '"Full Color Media"',
     desc: 'Global media network in 100+ countries. Inclusive, data-powered, culturally nuanced media that drives real impact.',
     color: '#C2436B',
+    logo: umLogo,
+    // Square logo: show it as a square tile
+    tileWidth: 80,
+    tileBg: '#FF3333',
+    imgStyle: { objectFit: 'cover' as const },
   },
   {
     name: 'Initiative Worldwide',
     sub: '"Fame & Flow"',
     desc: 'Top-ranked global media agency in 90+ markets. Builds brand fame while driving performance flow.',
     color: '#E8722E',
+    logo: initiativeLogo,
+    tileWidth: 176,
+    tileBg: '#FFFFFF',
+    imgStyle: { objectFit: 'contain' as const, padding: '6px' },
   },
 ];
 
@@ -182,8 +200,33 @@ export default function About() {
           <p style={{ color: '#9A9A9A' }} className="mb-16 max-w-lg">Global affiliations that give every client access to world-class tools, data, and expertise.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {network.map((n, i) => (
-              <div key={i} className="p-8 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <div className="w-1 h-10 rounded-full mb-6" style={{ background: n.color }} />
+              <div
+                key={i}
+                className="p-8 rounded-2xl flex flex-col transition-all duration-300 hover:-translate-y-1"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderTop: `3px solid ${n.color}`,
+                }}
+              >
+                {/* Logo tile */}
+                <div
+                  className="relative rounded-xl overflow-hidden mb-8 shrink-0"
+                  style={{
+                    height: '80px',
+                    width: `${n.tileWidth}px`,
+                    background: n.tileBg,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                  }}
+                >
+                  <img
+                    src={n.logo}
+                    alt={`${n.name} logo`}
+                    className="absolute inset-0 w-full h-full"
+                    style={n.imgStyle}
+                  />
+                </div>
+
                 <h3 className="font-extrabold text-xl mb-1" style={{ color: '#F2F2F2' }}>{n.name}</h3>
                 <p className="text-sm font-semibold mb-4" style={{ color: n.color }}>{n.sub}</p>
                 <p className="text-sm leading-relaxed" style={{ color: '#9A9A9A' }}>{n.desc}</p>
