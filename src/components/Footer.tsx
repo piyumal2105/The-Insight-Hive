@@ -112,11 +112,24 @@ export default function Footer() {
           style={{ borderColor: '#9A9A9A22', color: '#9A9A9A' }}
         >
           <p>© {year} The Insight Hive. All rights reserved.</p>
+
+          <p>
+            Design and Created by{' '}
+            <a
+              href="https://piyumal2105.github.io/Portfolio_Piyumal_Madhuwantha/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold hover:text-white transition-colors underline-offset-2 hover:underline"
+            >
+              Piyumal Madhuwantha
+            </a>
+          </p>
+
           <NavLink to="/contact" className="hover:text-white transition-colors">
             Privacy Policy
           </NavLink>
         </div>
       </div>
-    </footer >
+    </footer>
   );
 }
