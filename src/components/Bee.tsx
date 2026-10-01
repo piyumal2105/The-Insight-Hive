@@ -25,14 +25,38 @@ const HINT_VISIBLE_MS = 4200;
 const HINT_REPEAT_DELAY_MS = 13000;
 const HINT_MAX_APPEARANCES = 3;
 
-/* ---------- Map "perch" settings (Contact page) ---------- */
-
-/** The element on the Contact page whose centre is the red pin. */
+/* ---------- Perch settings ---------- */
 const MAP_ANCHOR_SELECTOR = '[data-bee-anchor="hive-map"]';
-/** Where the bee hovers relative to the pin tip (negative = above the pin). */
+
 const PERCH_OFFSET_Y = -40;
 const PERCH_MESSAGE = 'Yes, this is our Hive!';
 const PERCH_SUBMESSAGE = 'Come say hello — we’d love to meet you.';
+
+const SPOT_SELECTOR = '[data-bee-perch]';
+
+const SIDE_MARGIN_MIN = 50;
+const SIDE_MARGIN_PCT = 0.08;
+
+const PERCH_ENTER_MIN = 0.2;
+const PERCH_ENTER_MAX = 0.85;
+const PERCH_STAY_MIN = 0.06;
+const PERCH_STAY_MAX = 0.96;
+
+type PerchSide = 'left' | 'right' | 'center';
+
+type PerchTarget = {
+  id: string;
+  x: number;
+  y: number;
+  message: string;
+  sub?: string;
+  /** Show the pulsing ripple on the pin (map only). */
+  ripple: boolean;
+  /** Vertical offset used to place the ripple at the pin tip. */
+  offsetY: number;
+  /** true = bee picks left/right itself (section spots); false = fixed x (map pin). */
+  sided: boolean;
+};
 
 function BeeSVG({ wingPhase, speed }: { wingPhase: number; speed: number }) {
   const flapSpeedMul = 1 + Math.min(speed / 3, 1.5);
@@ -122,18 +146,68 @@ function lerpAngle(a: number, b: number, t: number) {
   return a + diff * t;
 }
 
-/** Viewport position where the bee should hover over the map's red pin,
- *  or null when the map isn't on the current page. The Google embed always
- *  centres the pin in the iframe, so the iframe's centre is the pin tip. */
-function getPerchTarget(): BeePos | null {
-  const el = document.querySelector(MAP_ANCHOR_SELECTOR);
-  if (!el) return null;
-  const rect = el.getBoundingClientRect();
-  if (rect.width === 0 || rect.height === 0) return null;
-  return {
-    x: rect.left + rect.width / 2,
-    y: rect.top + rect.height / 2 + PERCH_OFFSET_Y,
-  };
+/** Horizontal position of the bee for a given side. */
+function sideX(side: PerchSide, vw: number, fallbackX: number) {
+  const margin = Math.max(SIDE_MARGIN_MIN, vw * SIDE_MARGIN_PCT);
+  if (side === 'left') return margin;
+  if (side === 'right') return vw - margin;
+  return fallbackX;
+}
+
+/** Collects every perch target currently in the DOM: the Contact map pin
+ *  (if present) plus all [data-bee-perch] section spots. Positions are in
+ *  viewport coordinates, so they follow the page as it scrolls. */
+function getPerchTargets(): PerchTarget[] {
+  const targets: PerchTarget[] = [];
+
+  // Contact page map pin. The Google embed always centres the pin in the
+  // iframe, so the iframe's centre is the pin tip.
+  const mapEl = document.querySelector(MAP_ANCHOR_SELECTOR);
+  if (mapEl) {
+    const rect = mapEl.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      targets.push({
+        id: 'hive-map',
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2 + PERCH_OFFSET_Y,
+        message: PERCH_MESSAGE,
+        sub: PERCH_SUBMESSAGE,
+        ripple: true,
+        offsetY: PERCH_OFFSET_Y,
+        sided: false,
+      });
+    }
+  }
+
+  // Section spots
+  document.querySelectorAll<HTMLElement>(SPOT_SELECTOR).forEach((el) => {
+    const rect = el.getBoundingClientRect();
+    const id = el.dataset.beePerch;
+    const message = el.dataset.beeMessage;
+    if (!id || !message) return;
+    const offsetY = Number(el.dataset.beeOffsetY ?? 0) || 0;
+    targets.push({
+      id,
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2 + offsetY,
+      message,
+      sub: el.dataset.beeSub,
+      ripple: false,
+      offsetY,
+      sided: true,
+    });
+  });
+
+  return targets;
+}
+
+function targetInRange(t: PerchTarget, vw: number, vh: number, sticky: boolean) {
+  const lo = sticky ? PERCH_STAY_MIN : PERCH_ENTER_MIN;
+  const hi = sticky ? PERCH_STAY_MAX : PERCH_ENTER_MAX;
+  const yOk = t.y >= vh * lo && t.y <= vh * hi;
+  // Sided spots ignore x (the bee chooses left/right itself).
+  const xOk = t.sided || (t.x >= 0 && t.x <= vw);
+  return yOk && xOk;
 }
 
 function computePopupAnchor(beePos: BeePos): { left: number; top: number } {
@@ -343,28 +417,49 @@ function BeeDiscoveryHint({ visible }: { visible: boolean }) {
   );
 }
 
-/** Shown while the bee is hovering over the red map pin: a pulsing ripple
- *  on the pin plus a "Yes, this is our Hive!" bubble above the bee. */
-function BeePerchBubble({ visible }: { visible: boolean }) {
+/** Shown while the bee is hovering on a perch spot: a small bubble above the
+ *  bee with the spot's message, plus (map only) a pulsing ripple on the pin.
+ *  The bubble leans toward the screen centre depending on the bee's side, so
+ *  it always stays fully on screen (even on phones). */
+function BeePerchBubble({
+  visible,
+  message,
+  sub,
+  ripple,
+  offsetY,
+  side,
+}: {
+  visible: boolean;
+  message: string;
+  sub?: string;
+  ripple: boolean;
+  offsetY: number;
+  side: PerchSide;
+}) {
+  // Where the bee sits along the bubble's width (in %).
+  const anchorPct = side === 'left' ? 15 : side === 'right' ? 85 : 50;
+
   return (
     <>
-      {/* Ripple on the pin tip */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 30,
-          top: 26 - PERCH_OFFSET_Y,
-          width: 12,
-          height: 12,
-          transform: 'translate(-50%, -50%)',
-          borderRadius: '50%',
-          background: 'rgba(194,67,107,0.55)',
-          opacity: visible ? 1 : 0,
-          transition: 'opacity 0.5s ease',
-          pointerEvents: 'none',
-        }}
-        className={visible ? 'hive-perch-ring' : undefined}
-      />
+      {/* Ripple on the pin tip (map only) */}
+      {ripple && (
+        <div
+          style={{
+            position: 'absolute',
+            left: 30,
+            top: 26 - offsetY,
+            width: 12,
+            height: 12,
+            transform: 'translate(-50%, -50%)',
+            borderRadius: '50%',
+            background: 'rgba(194,67,107,0.55)',
+            opacity: visible ? 1 : 0,
+            transition: 'opacity 0.5s ease',
+            pointerEvents: 'none',
+          }}
+          className={visible ? 'hive-perch-ring' : undefined}
+        />
+      )}
 
       {/* Message bubble */}
       <div
@@ -372,8 +467,8 @@ function BeePerchBubble({ visible }: { visible: boolean }) {
           position: 'absolute',
           left: 30,
           top: -12,
-          transform: `translate(-50%, -100%) translateY(${visible ? '0px' : '10px'}) scale(${visible ? 1 : 0.6})`,
-          transformOrigin: '50% 100%',
+          transform: `translate(-${anchorPct}%, -100%) translateY(${visible ? '0px' : '10px'}) scale(${visible ? 1 : 0.6})`,
+          transformOrigin: `${anchorPct}% 100%`,
           opacity: visible ? 1 : 0,
           transition: visible
             ? 'opacity 0.4s ease, transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)'
@@ -414,16 +509,18 @@ function BeePerchBubble({ visible }: { visible: boolean }) {
               backgroundClip: 'text',
             }}
           >
-            {PERCH_MESSAGE}
+            {message}
           </div>
-          <div style={{ marginTop: 2, fontSize: 11.5, fontWeight: 600, color: '#8a6a86' }}>
-            {PERCH_SUBMESSAGE}
-          </div>
+          {sub && (
+            <div style={{ marginTop: 2, fontSize: 11.5, fontWeight: 600, color: '#8a6a86' }}>
+              {sub}
+            </div>
+          )}
           <div
             style={{
               position: 'absolute',
               bottom: -6,
-              left: '50%',
+              left: `${anchorPct}%`,
               transform: 'translateX(-50%) rotate(45deg)',
               width: 12,
               height: 12,
@@ -471,12 +568,25 @@ export default function Bee() {
   const hintAppearancesRef = useRef(0);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Map perch state: `perchActive` = bee is heading to / sitting on the pin,
-  // `perchArrived` = it has reached the pin and the bubble should show.
+  // Perch state: `perchActive` = bee is heading to / sitting on a spot,
+  // `perchArrived` = it has reached the spot and the bubble should show,
+  // `perchInfo` = the message to show for the current spot,
+  // `perchSide` = which side of the screen the bee is perched on.
   const [perchActive, setPerchActive] = useState(false);
   const [perchArrived, setPerchArrived] = useState(false);
-  const perchModeRef = useRef(false);
+  const [perchSide, setPerchSide] = useState<PerchSide>('center');
+  const [perchInfo, setPerchInfo] = useState<{
+    message: string;
+    sub?: string;
+    ripple: boolean;
+    offsetY: number;
+  } | null>(null);
+  const perchIdRef = useRef<string | null>(null);
   const arrivedRef = useRef(false);
+  /** Side used for the current perch. */
+  const sideRef = useRef<PerchSide>('center');
+  /** Last left/right side that was shown (so the next one is the opposite). */
+  const lastSideRef = useRef<'left' | 'right' | null>(null);
 
   const animRef = useRef<number>(0);
   const wingRef = useRef<number>(0);
@@ -528,35 +638,71 @@ export default function Bee() {
       const dt = Math.min(time - lastTimeRef.current, 48);
       lastTimeRef.current = time;
 
-      /* ---------- Map perch: fly to the red pin and hover there ---------- */
-      const pin = getPerchTarget();
-      const vh = window.innerHeight;
+      /* ---------- Perch: fly to a spot in view and hover there ---------- */
       const vw = window.innerWidth;
-      const wasPerched = perchModeRef.current;
+      const vh = window.innerHeight;
+      const targets = getPerchTargets();
+      const currentId = perchIdRef.current;
 
-      // Hysteresis: easier to stay perched than to start, so it never flickers.
-      let wantPerch = false;
-      if (pin) {
-        const lo = wasPerched ? 0.02 : 0.2;
-        const hi = wasPerched ? 0.98 : 0.85;
-        wantPerch = pin.y >= vh * lo && pin.y <= vh * hi && pin.x >= 0 && pin.x <= vw;
+      let chosen: PerchTarget | null = null;
+
+      // 1) Stay on the current spot while it's still reasonably in view.
+      if (currentId) {
+        const same = targets.find((t) => t.id === currentId);
+        if (same && targetInRange(same, vw, vh, true)) chosen = same;
+      }
+      // 2) Otherwise pick the spot closest to the middle of the screen.
+      if (!chosen) {
+        const eligible = targets.filter((t) => targetInRange(t, vw, vh, false));
+        if (eligible.length > 0) {
+          eligible.sort((a, b) => Math.abs(a.y - vh / 2) - Math.abs(b.y - vh / 2));
+          chosen = eligible[0];
+        }
       }
 
-      if (wantPerch !== wasPerched) {
-        perchModeRef.current = wantPerch;
-        setPerchActive(wantPerch);
-        if (wantPerch) {
+      const newId = chosen ? chosen.id : null;
+      if (newId !== currentId) {
+        perchIdRef.current = newId;
+        arrivedRef.current = false;
+        setPerchArrived(false);
+
+        if (chosen) {
+          // Pick the side for this new stop: random the first time,
+          // then always the opposite of the previous one.
+          let side: PerchSide = 'center';
+          if (chosen.sided) {
+            const last = lastSideRef.current;
+            side = last === null
+              ? (Math.random() < 0.5 ? 'left' : 'right')
+              : (last === 'left' ? 'right' : 'left');
+            lastSideRef.current = side;
+          }
+          sideRef.current = side;
+          setPerchSide(side);
+
+          setPerchInfo({
+            message: chosen.message,
+            sub: chosen.sub,
+            ripple: chosen.ripple,
+            offsetY: chosen.offsetY,
+          });
+          setPerchActive(true);
           pausedUntilRef.current = 0;
         } else {
-          // Scrolled away from the map: hide bubble and go back to roaming.
-          arrivedRef.current = false;
-          setPerchArrived(false);
+          // Scrolled away: hide the bubble and go back to roaming.
+          setPerchActive(false);
           targetRef.current = randomPos();
           pausedUntilRef.current = time + 400;
         }
       }
 
-      if (wantPerch && pin) {
+      if (chosen) {
+        // Final spot the bee flies to: chosen side for section spots,
+        // the real pin position for the map.
+        const pin = {
+          x: chosen.sided ? sideX(sideRef.current, vw, chosen.x) : chosen.x,
+          y: chosen.y,
+        };
         const cur = posRef.current;
         const dx = pin.x - cur.x;
         const dy = pin.y - cur.y;
@@ -574,11 +720,11 @@ export default function Bee() {
         let vSpeed = 0;
 
         if (arrivedRef.current) {
-          // Locked on: stay glued to the pin even while the page scrolls.
+          // Locked on: stay glued to the spot even while the page scrolls.
           newPos = { x: cur.x + dx * 0.4, y: cur.y + dy * 0.4 };
           velRef.current = { x: 0, y: 0 };
         } else {
-          // Smooth approach that slows down as it nears the pin.
+          // Smooth approach that slows down as it nears the spot.
           const desired = Math.min(3.4, dist * 0.06);
           const nx = dist > 0 ? dx / dist : 0;
           const ny = dist > 0 ? dy / dist : 0;
@@ -771,8 +917,17 @@ export default function Bee() {
           pointerEvents: 'none',
         }}
       >
-        {!discovered && canClick && <BeeDiscoveryHint visible={hintVisible} />}
-        {perchActive && <BeePerchBubble visible={perchArrived} />}
+        {!discovered && canClick && !perchActive && <BeeDiscoveryHint visible={hintVisible} />}
+        {perchActive && perchInfo && (
+          <BeePerchBubble
+            visible={perchArrived && !popupMounted}
+            message={perchInfo.message}
+            sub={perchInfo.sub}
+            ripple={perchInfo.ripple}
+            offsetY={perchInfo.offsetY}
+            side={perchSide}
+          />
+        )}
         <div
           onClick={handleBeeClick}
           style={{

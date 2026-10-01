@@ -75,6 +75,34 @@ const pillars = [
   { image: philosophyTrust, title: 'Built on Trust', desc: 'Transparent, audited, and accountable.' },
 ];
 
+/**
+ * Invisible 1px marker the Bee looks for. When it is on screen the bee flies
+ * to it, hovers there, and shows `message` / `sub` in a small bubble.
+ * Place it inside a `relative` parent and position it with `className`.
+ */
+function BeeSpot({
+  id,
+  message,
+  sub,
+  className = '',
+}: {
+  id: string;
+  message: string;
+  sub?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      aria-hidden="true"
+      data-bee-perch={id}
+      data-bee-message={message}
+      data-bee-sub={sub}
+      className={`absolute pointer-events-none ${className}`}
+      style={{ width: 1, height: 1 }}
+    />
+  );
+}
+
 /** Generic reveal-on-scroll wrapper: fades + slides up a grid of children, staggered. */
 function useStaggerReveal() {
   const [visible, setVisible] = useState(false);
@@ -135,6 +163,14 @@ function FeaturedMilestone({ started }: { started: boolean }) {
         border: '1.5px solid transparent',
       }}
     >
+      {/* Bee perch spot for the milestone card */}
+      <BeeSpot
+        id="milestone"
+        message="Two quarters at No. 1!"
+        sub="Proud moment for us and Astra."
+        className="left-1/2 top-4 md:left-auto md:right-10"
+      />
+
       {/* soft glow */}
       <div
         className="absolute pointer-events-none"
@@ -330,7 +366,8 @@ export default function Home() {
     <>
       {/* Hero — fills the full screen; the nav floats over the top of it.
           id="home-hero" lets Bee.tsx know where this section is on screen,
-          so its click-to-chat popup only ever appears here. */}
+          so its click-to-chat popup only ever appears here.
+          (No bee perch here: the bee roams freely over the hero.) */}
       <section id="home-hero" className="relative overflow-hidden" style={{ background: '#EFEFEF', minHeight: '100vh' }}>
         <HiveBackground />
         <div className="absolute inset-0 pointer-events-none">
@@ -431,9 +468,15 @@ export default function Home() {
 
       {/* Trust bar — seamless looping logo strip */}
       <section
-        className="py-10 overflow-hidden"
+        className="relative py-10 overflow-hidden"
         style={{ background: '#fff', borderTop: '1px solid rgba(26,26,26,0.06)', borderBottom: '1px solid rgba(26,26,26,0.06)' }}
       >
+        <BeeSpot
+          id="trusted-by"
+          message="Great brands, great buzz."
+          sub="We’re proud to grow with them."
+          className="left-1/2 top-6 md:left-auto md:right-[8%]"
+        />
         <p className="text-center text-xs font-semibold tracking-widest mb-6" style={{ color: '#9A9A9A' }}>TRUSTED BY</p>
         <div
           className="relative overflow-hidden"
@@ -485,7 +528,13 @@ export default function Home() {
       {/* Capabilities */}
       <section className="py-24" style={{ background: '#EFEFEF' }}>
         <div className="max-w-7xl mx-auto px-6">
-          <div className="mb-16">
+          <div className="relative mb-16">
+            <BeeSpot
+              id="what-we-do"
+              message="Six skills. One hive."
+              sub="Strategy to data, all under one roof."
+              className="left-1/2 top-1/2 md:left-auto md:right-[8%]"
+            />
             <h2 className="font-extrabold mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#1A1A1A' }}>
               <span className="font-light">What</span> We Do
             </h2>
@@ -518,7 +567,13 @@ export default function Home() {
       {/* Impact stats */}
       <section ref={statsRef} className="py-24" style={{ background: '#262626' }}>
         <div className="max-w-7xl mx-auto px-6">
-          <div className="mb-16 text-center">
+          <div className="relative mb-16 text-center">
+            <BeeSpot
+              id="impact"
+              message="Numbers that buzz!"
+              sub="Real work, real clients, real wins."
+              className="left-1/2 top-1/2 md:left-auto md:right-[8%]"
+            />
             <h2 className="font-extrabold mb-4" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#F2F2F2' }}>
               <span className="font-light">Impact &</span> Milestones
             </h2>
@@ -540,7 +595,13 @@ export default function Home() {
 
       {/* Philosophy — glassmorphic cards (frosted glass, soft glow border, subtle shine) */}
       <section className="py-24" style={{ background: '#EFEFEF' }}>
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="relative max-w-7xl mx-auto px-6">
+          <BeeSpot
+            id="philosophy"
+            message="What makes our hive tick"
+            sub="Passion, dedication and trust."
+            className="left-1/2 top-4 md:left-auto md:right-[8%]"
+          />
           <h2 className="font-extrabold mb-16 text-center" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#1A1A1A' }}>
             <span className="font-light">Our</span> Philosophy
           </h2>
@@ -632,7 +693,13 @@ export default function Home() {
       {/* Selected work */}
       <section className="py-24" style={{ background: '#262626' }}>
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-end justify-between mb-16">
+          <div className="relative flex items-end justify-between mb-16">
+            <BeeSpot
+              id="selected-work"
+              message="Fresh from the hive!"
+              sub="Take a look at our latest campaigns."
+              className="left-1/2 top-1/2 md:left-[55%]"
+            />
             <h2 className="font-extrabold" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#F2F2F2' }}>
               <span className="font-light">Selected</span> Work
             </h2>
@@ -665,7 +732,13 @@ export default function Home() {
 
       {/* CTA band */}
       <section className="py-24 text-center" style={{ background: 'linear-gradient(135deg, #92278F, #C2436B, #F7941F)' }}>
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="relative max-w-3xl mx-auto px-6">
+          <BeeSpot
+            id="cta"
+            message="Let’s make some honey!"
+            sub="Start a conversation with us."
+            className="left-1/2 -top-6"
+          />
           <h2 className="font-extrabold mb-6" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#fff' }}>
             Ready to build something great?
           </h2>
